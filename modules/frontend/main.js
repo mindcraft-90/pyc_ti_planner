@@ -48,6 +48,12 @@ function onRender(event) {
       this.classList.remove('highlight');
     };
 
+    // Prevent right-click context menu
+    img.oncontextmenu = function(e) {
+      e.preventDefault();
+      return false;
+    };
+
     Streamlit.setFrameHeight(img.height);
   }
 
