@@ -48,7 +48,17 @@ st.write(
 
 st.write("######")
 st.write("#### 📜 Release Notes")
-with st.expander(label="Version 0.1 - 'The Big Bang'"):
+with st.expander(label="Version 0.1.1 - Hotfixes"):
+    st.write(
+        """
+        - Updated module data to use file form game version 0.4.38.
+        - Tweaked crew resource usage to 7 / 240 (was 0.029).
+        - Disallowed right-click for contest menu on module images.
+        - Added right-click event on module image to clear it.
+        - Adjusted module image tooltip to show more data.
+        """
+    )
+with st.expander(label="Version 0.1.0 - 'The Big Bang'"):
     st.write(
         """
         - Initial release! If the universe can start with a bang, so can we.
