@@ -1,5 +1,5 @@
 # App UI resources
-ui_layouts = {"hab_main": [1, 3, 0.25],
+ui_layouts = {"hab_main": [1.5, 3, 1.5],
               "hab_sub": [4, 1.5, 2],
               "hab_stats": [1, 1, 0.25]}
 
