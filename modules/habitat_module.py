@@ -61,8 +61,24 @@ def module_tooltip(core: ModuleData, label: str, st_state, all_modules) -> str:
 
     module_name = st_state.habitat["cells"][label][-1]
     module_stat = all_modules[module_name]
-    inc_power = f"Power: {module_stat['power']}, " if module_stat["power"] > 0 else ""
-    exp_power = f"Power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
+
+    inc_power = f"power: {module_stat['power']}, " if module_stat["power"] > 0 else ""
+    exp_power = f"power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
+
+    crew_costs = (module_stat["crew"] * 7 / 240)
+    total_costs = module_stat["supportMaterials_month"].copy()
+    total_costs["water"] = total_costs.get("water", 0) + crew_costs
+    total_costs["volatiles"] = total_costs.get("volatiles", 0) + crew_costs
+
+    resource_order = ["power", "money", "water", "volatiles"]
+
+    def sort_key(item):
+        if item[0] in resource_order:
+            return resource_order.index(item[0])
+        return len(resource_order)
+
+    sorted_costs = sorted(total_costs.items(), key=sort_key)
+    support_costs = ", ".join([f"{k}: {v.__round__(2)}" for k, v in sorted_costs if v != 0])
 
     tooltip = f"""\
 {module_stat['friendlyName']}
@@ -70,6 +86,6 @@ Tier {module_stat['tier']} module, {module_stat['crew']} crew, {module_stat['bas
 Monthly Incomes and Bonuses
 {inc_power}
 Monthly Support Costs
-{exp_power}"""
+{exp_power}{support_costs}"""
 
     return tooltip
