@@ -17,17 +17,17 @@ mat_icons = {"home": ":material/home_app_logo:",
              "upload": ":material/upload:",
              "web": ":material/language:"}
 
-# Population water and volatiles consumption
+# Population water and volatiles consumption; ~0.0291666666666667
 pop_upkeep = {
-    "volatiles": 0.029,
-    "water": 0.029
+    "volatiles": 7 / 240,
+    "water": 7 / 240
 }
 
 # Amount of pops that each farm can support, in water / volatiles consumption
 farm_supply = {
-    "Hydroponics Bay": 50,
+    "HydroponicsBay": 50,
     "Farm": 300,
-    "Agriculture Complex": 3000
+    "AgricultureComplex": 3000
 }
 
 # Solar power output modifiers based on solar bodies
