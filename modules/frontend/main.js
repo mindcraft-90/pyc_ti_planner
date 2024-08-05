@@ -2,8 +2,11 @@
 // Code borrowed and adapted from blackary.
 // https://github.com/blackary/streamlit-image-coordinates
 ////
+function rightClickEvent(value) {
+    Streamlit.setComponentValue(0)
+}
 
-function sendValue(value) {
+function leftClickEvent(value) {
     Streamlit.setComponentValue(value)
 }
 
@@ -43,9 +46,6 @@ function onRender(event) {
     img.onload = resizeImage;
     window.addEventListener("resize", resizeImage);
 
-    // When image is clicked, send the timestamp to Python
-    img.onclick = () => sendValue(Date.now());
-
     // Add event listeners for hover effect
     img.onmouseenter = function() {
         this.classList.add('highlight');
@@ -55,9 +55,13 @@ function onRender(event) {
         this.classList.remove('highlight');
     };
 
-    // Prevent right-click context menu
+    // When image is left clicked, send the timestamp to Python
+    img.onclick = () => leftClickEvent(Date.now());
+
+    // Prevent right-click context menu and send a null value
     img.oncontextmenu = function(e) {
         e.preventDefault();
+        rightClickEvent();
         return false;
     };
 }

@@ -21,6 +21,8 @@ def module_image(core: ModuleData, label: str, st_state, all_modules) -> Union[I
     Returns a numpy array of the image.
     """
     cell = st_state.habitat["cells"][label]
+    if label in st_state:
+        cell[-1] = None if st_state[label] == 0 else cell[-1]
 
     try:
         if cell[-1] is None:
