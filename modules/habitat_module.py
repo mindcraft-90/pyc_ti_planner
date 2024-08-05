@@ -60,4 +60,16 @@ def module_tooltip(core: ModuleData, label: str, st_state, all_modules) -> str:
         return "Empty Module"
 
     module_name = st_state.habitat["cells"][label][-1]
-    return f"{all_modules[module_name]['friendlyName']}"
+    module_stat = all_modules[module_name]
+    inc_power = f"Power: {module_stat['power']}, " if module_stat["power"] > 0 else ""
+    exp_power = f"Power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
+
+    tooltip = f"""\
+{module_stat['friendlyName']}
+Tier {module_stat['tier']} module, {module_stat['crew']} crew, {module_stat['baseMass_tons']} tons
+Monthly Incomes and Bonuses
+{inc_power}
+Monthly Support Costs
+{exp_power}"""
+
+    return tooltip
