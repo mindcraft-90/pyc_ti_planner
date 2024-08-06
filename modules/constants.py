@@ -1,7 +1,7 @@
 # App UI resources
 ui_layouts = {"hab_main": [1.5, 3, 1.5],
               "hab_sub": [4, 1.5, 2],
-              "hab_stats": [1, 1, 0.25]}
+              "hab_stats": [1, 1, 1, 1, 1]}
 
 st_icons = {"home": "🏠",
             "hab": "🛰️",

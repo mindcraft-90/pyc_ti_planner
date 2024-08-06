@@ -15,6 +15,7 @@ ModuleData = Dict[str, Any]
 st_state = st.session_state
 
 
+@st.cache_resource
 def get_raw_module_data() -> Dict[str, ModuleData]:
     """
     Import raw module data and filter out undesired modules.
@@ -55,10 +56,10 @@ def generate_habitat_layout(core: ModuleData) -> None:
             cell_module = st_state.habitat["cells"].get("0_3", [3, None])[-1]
             is_mining_module = isinstance(cell_module, str) and "Mining" in cell_module
 
-            cols = st.columns([1, 0.25, 0.25, 4, 0.25, 0.25, 1], gap="small") \
-                if is_mining_module else st.columns(len(row), gap="small")
+            cols = st.columns([1, 0.25, 0.25, 4, 0.25, 0.25, 1]) \
+                if is_mining_module else st.columns(len(row))
         else:
-            cols = st.columns(len(row), gap="small")
+            cols = st.columns(len(row))
 
         for col_idx, col in ((i, c) for i, c in enumerate(cols) if row[i] != 0):
             with col:
@@ -79,15 +80,15 @@ if st_state.clicked_cell and st_state.module_choice:
     st_state.module_choice = None
     st_state.clicked_cell = None
 
-col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], gap="small")
 
+col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], vertical_alignment="top")
 
 with col_habitat:
     sub_layout = ui_layouts["hab_sub"]
     col_core_choice, col_habitat_type, col_solar_body \
-        = st.columns(sub_layout, gap="small")
+        = st.columns(sub_layout, vertical_alignment="center")
     col_module_filters, col_module_select \
-        = st.columns([sub_layout[0], sub_layout[1] + sub_layout[2]], gap="small")
+        = st.columns([sub_layout[0], sub_layout[1] + sub_layout[2]], vertical_alignment="center")
 
     habitat_type: str = col_habitat_type.radio(
         label="Habitat Type",
@@ -161,4 +162,14 @@ with col_habitat:
                 key="module_choice")
 
     with col_stats:
+        st_state.habitat["name"] = st.text_input(label="Habitat name:", label_visibility="visible",
+                                                 placeholder="Habitat name...", max_chars=40)
+        if st_state.habitat["type"] == "base":
+            with st.expander(label="Site resources..."):
+                st.number_input(label="water", label_visibility="collapsed", value="min", step=1.00)
+                st.number_input(label="volatiles", label_visibility="collapsed", value="min", step=1.00)
+                st.number_input(label="metals", label_visibility="collapsed", value="min", step=1.00)
+                st.number_input(label="nobleMetals", label_visibility="collapsed", value="min", step=1.00)
+                st.number_input(label="fissiles", label_visibility="collapsed", value="min", step=1.00)
+
         display_habitat_stats(st_state.habitat, all_modules)

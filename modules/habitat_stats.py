@@ -11,6 +11,7 @@ def get_default_stats() -> Dict[str, Any]:
     """
     return {
         "crew": 0,
+        "baseMass_tons": 0,
         "power": 0,
         "incomeMoney_month": 0,
         "incomeInfluence_month": 0,
@@ -100,14 +101,14 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
     module_list = [m[1] for m in habitat_data["cells"].values() if m[1]]
 
     hab_stats = get_default_stats()
+    solar_body = habitat_data["body"]
     for module in module_list:
         module_data = all_modules[module]
-        solar_body = habitat_data["body"]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
     st.markdown("**Habitat Stats**")
-    col_stats1, col_stats2, s = st.columns(c.ui_layouts["hab_stats"], gap="small")
-    cols_stats = [col_stats1, col_stats2]
+    col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
+    cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
     col_stats_index = 0
 
     for k in hab_stats:
@@ -117,17 +118,17 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                 case "power":
                     icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                     with cols_stats[col_stats_index]:
-                        st.write(f"{icon}: {format_number(hab_stats[k])}", unsafe_allow_html=True)
-                    col_stats_index = 1 - col_stats_index  # Toggle between column 0 and 1
+                        st.write(f"{icon} {format_number(hab_stats[k])}", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "supportMaterials_month":
                     st.write("######")
                     st.markdown("**Monthly Upkeep**")
-                    col_upkeep1, col_upkeep2, u = st.columns(c.ui_layouts["hab_stats"], gap="small")
-                    cols_upkeep = [col_upkeep1, col_upkeep2]
+                    col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4, u = st.columns(c.ui_layouts["hab_stats"])
+                    cols_upkeep = [col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4]
                     col_upkeep_index = 0
 
-                    # Add farm module discounts for volatiles and water/
+                    # Add farm module discounts for volatiles and water
                     for sub_k in hab_stats[k]:
                         match sub_k:
                             case res if res in ("volatiles", "water"):
@@ -141,8 +142,8 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                                 continue
                             icon = get_base64_image(sub_k)
                             value = hab_stats[k][sub_k]
-                            st.write(f"{icon}: {format_number(value)}", unsafe_allow_html=True)
-                        col_upkeep_index = 1 - col_upkeep_index
+                            st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
+                        col_upkeep_index = (col_upkeep_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "techBonuses":
                     if not hab_stats[k]:
@@ -150,17 +151,16 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                     st.write("######")
                     st.markdown("""**Tech Bonuses**  
                        :gray[(Diminished past 50%)]""")
-                    col_tech1, col_tech2, u = st.columns(c.ui_layouts["hab_stats"], gap="small")
-                    cols_tech = [col_tech1, col_tech2]
+                    col_tech1, col_tech2, col_tech3, col_tech4, t = st.columns(c.ui_layouts["hab_stats"])
+                    cols_tech = [col_tech1, col_tech2, col_tech3, col_tech4]
                     col_tech_index = 0
 
                     for sub_k in hab_stats[k]:
                         with cols_tech[col_tech_index]:
                             icon = get_base64_image(sub_k)
                             value = hab_stats[k][sub_k] * 100
-                            st.write(f"{icon}: {format_number(value)}%",
-                                     unsafe_allow_html=True)
-                        col_tech_index = 1 - col_tech_index
+                            st.write(f"{icon} {format_number(value)}%", unsafe_allow_html=True)
+                        col_tech_index = (col_tech_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "leoBonuses":
                     if not hab_stats[k]:
@@ -188,5 +188,5 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                         if k in ("allowsShipConstruction", "allowsResupply"):
                             st.write(f"{icon}", unsafe_allow_html=True)
                         else:
-                            st.write(f"{icon}: {hab_stats[k]}", unsafe_allow_html=True)
-                    col_stats_index = 1 - col_stats_index  # Toggle between column 0 and 1
+                            st.write(f"{icon} {hab_stats[k]}", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
