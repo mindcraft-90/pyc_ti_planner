@@ -42,13 +42,13 @@ def module_image(core: ModuleData, label: str, st_state, all_modules) -> Union[I
         image_path = "data/misc/missing_sprite.png"
         module_sprite = Image.open(image_path)
 
-    if not image_path.endswith("_Empty_Module.png") and cell[0] != 3 and core["tier"] != 3:
-        if label.startswith("0_"):
-            module_sprite = module_sprite.rotate(180)
-        elif label in ["1_0", "1_1", "1_2"]:
-            module_sprite = module_sprite.rotate(270)
-        elif label in ["1_4", "1_5", "1_6"]:
-            module_sprite = module_sprite.rotate(90)
+    # if not image_path.endswith("_Empty_Module.png") and cell[0] != 3 and core["tier"] != 3:
+    #     if label.startswith("0_"):
+    #         module_sprite = module_sprite.rotate(180)
+    #     elif label in ["1_0", "1_1", "1_2"]:
+    #         module_sprite = module_sprite.rotate(270)
+    #     elif label in ["1_4", "1_5", "1_6"]:
+    #         module_sprite = module_sprite.rotate(90)
 
     if label == st_state.clicked_cell and cell[0] != 2:
         return add_frame(module_sprite, wide=True if cell[0] == 3 and cell[-1] else False)
