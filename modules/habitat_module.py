@@ -1,6 +1,7 @@
 from PIL import Image
 
 from modules.habitat_stats import format_number
+from modules.constants import ModuleData
 
 
 def add_frame(module_sprite: Image, wide: bool = False) -> Image:
@@ -14,30 +15,27 @@ def add_frame(module_sprite: Image, wide: bool = False) -> Image:
     return Image.alpha_composite(frame, module_sprite)
 
 
-def module_image(label: str, st_state, all_modules):
+def module_image(core: ModuleData, label: str, state, all_modules):
     """
     Determine the appropriate image for a module based on its state.
     Returns a numpy array of the image.
     """
-    cell = st_state.habitat["cells"][label]
-    tier = st_state.habitat["tier"]
+    cell = state.habitat["cells"][label]
 
-    if label in st_state:
-        cell[-1] = None if st_state[label] == 0 else cell[-1]
+    if label in state:
+        cell[-1] = None if state[label] == 0 else cell[-1]
 
     try:
         if cell[-1] is None:
             if cell[0] == 2:
-                core_name = st_state.habitat["cells"][label][-1]
-                core = all_modules[core_name]
-                image_file = f"{st_state.habitat['type']}_T{tier}_{core['dataName']}"
-                st_state.habitat["cells"][label][-1] = core["dataName"]
+                image_file = f"{state.habitat['type']}_T{core['tier']}_{core['dataName']}"
+                state.habitat["cells"][label][-1] = core["dataName"]
                 image_path = f"_resources/sprites/{image_file}.png"
             else:
-                image_path = f"_resources/sprites/T{tier}_Empty_Module.png"
+                image_path = f"_resources/sprites/T{core['tier']}_Empty_Module.png"
 
         else:
-            sprite = f"{st_state.habitat['type']}_T{all_modules[cell[-1]]['tier']}_{cell[-1]}.png"
+            sprite = f"{state.habitat['type']}_T{all_modules[cell[-1]]['tier']}_{cell[-1]}.png"
             image_path = f"_resources/sprites/{sprite}"
 
         module_sprite = Image.open(image_path)
@@ -53,15 +51,13 @@ def module_image(label: str, st_state, all_modules):
     #     elif label in ["1_4", "1_5", "1_6"]:
     #         module_sprite = module_sprite.rotate(90)
 
-    if label == st_state.clicked_cell and cell[0] != 2:
+    if label == state.clicked_cell and cell[0] != 2:
         return add_frame(module_sprite, wide=True if cell[0] == 3 and cell[-1] else False)
     return module_sprite
 
 
-def module_tooltip(label: str, st_state, all_modules) -> str:
-    if st_state.habitat["cells"][label][-1] is None:
-        # if st_state.habitat["cells"][label][0] == 2:
-        #     return core["friendlyName"]
+def module_tooltip(label: str, state, all_modules) -> str:
+    if state.habitat["cells"][label][-1] is None:
         return "Empty Module"
 
     pretty_names = {
@@ -82,7 +78,7 @@ def module_tooltip(label: str, st_state, all_modules) -> str:
         "incomeOps_month": "Ops",
     }
 
-    module_name = st_state.habitat["cells"][label][-1]
+    module_name = state.habitat["cells"][label][-1]
     module_stat = all_modules[module_name]
 
     # Tooltip bit: Monthly Incomes and Bonuses

@@ -18,11 +18,16 @@ def get_default_stats() -> c.ModuleData:
         "incomeResearch_month": 0,
         "incomeProjects": 0,
         "missionControl": 0,
-        "spaceCombatValue": 0,
+        # water
+        # volatiles
+        # metals
+        # nobles
+        # fissiles
         "incomeAntimatter_month": 0,
-        "allowsShipConstruction": False,
         "allowsResupply": False,
-        "CanFoundHabs": False,
+        "CanFoundHabs": False,  # first nanofactory is 25%, second is 30% ...
+        "allowsShipConstruction": False,
+        "spaceCombatValue": 0,
         "supportMaterials_month": {},
         "techBonuses": {},
         "leoBonuses": {},
@@ -181,6 +186,9 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     if hab_stats["CanFoundHabs"]:
                         icon = get_base64_image(k)
                         st.write(f"{icon}", unsafe_allow_html=True)
+
+                case "crew" | "baseMass_tons":
+                    pass
 
                 case _:
                     with cols_stats[col_stats_index]:

@@ -65,7 +65,7 @@ def generate_habitat_layout(core: ModuleData) -> None:
                 if label not in state.habitat["cells"]:
                     state.habitat["cells"][label] = [row[col_idx], None]
                 clickable_image(key=label, use_column_width="always",
-                                source=module_image(label, state, all_modules),
+                                source=module_image(core, label, state, all_modules),
                                 tooltip=module_tooltip(label, state, all_modules))
 
 
