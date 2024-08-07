@@ -1,11 +1,10 @@
 import base64
 import streamlit as st
-from typing import Dict, Any
 
 from modules import constants as c
 
 
-def get_default_stats() -> Dict[str, Any]:
+def get_default_stats() -> c.ModuleData:
     """
     Retrieve a blank set of desired habitat stats.
     """
@@ -35,7 +34,7 @@ def format_number(value: float) -> float | int:
     Format float numbers to 3 decimals and strip trailing '0's and '.'s.
     """
     # return f"{value:.3f}".rstrip('0').rstrip('.')
-    return value.__round__(2) if value % 1 else int(value)
+    return value.__round__(1) if value % 1 else int(value)
 
 
 def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) -> str:
@@ -52,7 +51,7 @@ def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) ->
     return f"<img src='data: image/png; base64, {encoded_data}' style='width: {width}px; height: {height}px; '>"
 
 
-def update_habitat_stats(module: Dict[str, Any], hab_stats: Dict[str, Any], solar_body: str) -> Dict[str, Any]:
+def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
     """
@@ -95,7 +94,7 @@ def update_habitat_stats(module: Dict[str, Any], hab_stats: Dict[str, Any], sola
     return hab_stats
 
 
-def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, Dict[str, Any]]) -> None:
+def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.ModuleData]) -> None:
     """
     Display the habitat stats in the Streamlit app.
     """

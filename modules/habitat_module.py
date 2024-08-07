@@ -1,9 +1,6 @@
 from PIL import Image
-from typing import Any, Union, Dict
 
 from modules.habitat_stats import format_number
-
-ModuleData = Dict[str, Any]
 
 
 def add_frame(module_sprite: Image, wide: bool = False) -> Image:
@@ -17,23 +14,27 @@ def add_frame(module_sprite: Image, wide: bool = False) -> Image:
     return Image.alpha_composite(frame, module_sprite)
 
 
-def module_image(core: ModuleData, label: str, st_state, all_modules) -> Union[Image, str]:
+def module_image(label: str, st_state, all_modules):
     """
     Determine the appropriate image for a module based on its state.
     Returns a numpy array of the image.
     """
     cell = st_state.habitat["cells"][label]
+    tier = st_state.habitat["tier"]
+
     if label in st_state:
         cell[-1] = None if st_state[label] == 0 else cell[-1]
 
     try:
         if cell[-1] is None:
             if cell[0] == 2:
-                image_file = f"{st_state.habitat['type']}_T{core['tier']}_{core['dataName']}"
+                core_name = st_state.habitat["cells"][label][-1]
+                core = all_modules[core_name]
+                image_file = f"{st_state.habitat['type']}_T{tier}_{core['dataName']}"
                 st_state.habitat["cells"][label][-1] = core["dataName"]
                 image_path = f"_resources/sprites/{image_file}.png"
             else:
-                image_path = f"_resources/sprites/T{core['tier']}_Empty_Module.png"
+                image_path = f"_resources/sprites/T{tier}_Empty_Module.png"
 
         else:
             sprite = f"{st_state.habitat['type']}_T{all_modules[cell[-1]]['tier']}_{cell[-1]}.png"
@@ -57,7 +58,7 @@ def module_image(core: ModuleData, label: str, st_state, all_modules) -> Union[I
     return module_sprite
 
 
-def module_tooltip(core: ModuleData, label: str, st_state, all_modules) -> str:
+def module_tooltip(label: str, st_state, all_modules) -> str:
     if st_state.habitat["cells"][label][-1] is None:
         # if st_state.habitat["cells"][label][0] == 2:
         #     return core["friendlyName"]
@@ -66,18 +67,19 @@ def module_tooltip(core: ModuleData, label: str, st_state, all_modules) -> str:
     pretty_names = {
         "power": "Power",
         "money": "Money",
+        "incomeResearch_month": "Research",
+        "boost": "Boost",
+        "missionControl": "Mission Control",
         "water": "Water",
         "volatiles": "Volatiles",
         "metals": "Metals",
         "nobleMetals": "Noble Metals",
         "fissiles": "Fissiles",
         "incomeMoney_month": "Money",
-        "missionControl": "Mission Control",
-        "incomeResearch_month": "Research",
+        "incomeAntimatter_month": "Antimatter",
         "incomeProjects": "Projects",
         "incomeInfluence_month": "Influence",
         "incomeOps_month": "Ops",
-        "incomeAntimatter_month": "Antimatter",
     }
 
     module_name = st_state.habitat["cells"][label][-1]

@@ -1,21 +1,30 @@
+# Module data type
+ModuleData = dict[str, str | int | list[dict[str, float]] | dict | bool]
+
 # App UI resources
-ui_layouts = {"hab_main": [1.5, 3, 1.5],
-              "hab_sub": [4, 1.5, 2],
-              "hab_stats": [1, 1, 1, 1, 1]}
+ui_layouts = {
+    "hab_main": [1.5, 3, 1.5],
+    "hab_sub": [4, 1.5, 2],
+    "hab_stats": [1, 1, 1, 1, 1],
+}
 
-st_icons = {"home": "🏠",
-            "hab": "🛰️",
-            "ship": "🛸",
-            "info": "ℹ️",
-            "upload": "🔼",
-            "web": "🌐"}
+st_icons = {
+    "home": "🏠",
+    "hab": "🛰️",
+    "ship": "🛸",
+    "info": "ℹ️",
+    "upload": "🔼",
+    "web": "🌐"
+}
 
-mat_icons = {"home": ":material/home_app_logo:",
-             "hab": ":material/satellite_alt:",
-             "ship": ":material/rocket_launch:",
-             "info": ":material/info:",
-             "upload": ":material/upload:",
-             "web": ":material/language:"}
+mat_icons = {
+    "home": ":material/home_app_logo:",
+    "hab": ":material/satellite_alt:",
+    "ship": ":material/rocket_launch:",
+    "info": ":material/info:",
+    "upload": ":material/upload:",
+    "web": ":material/language:"
+}
 
 # Population water and volatiles consumption; ~0.0291666666666667
 pop_upkeep = {
