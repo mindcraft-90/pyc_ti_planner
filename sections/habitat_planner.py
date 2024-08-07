@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 
 from modules.clickable_image import clickable_image
 from modules.constants import habitat_layouts, solar_modifiers, ui_layouts
-from modules.habitat_stats import display_habitat_stats
+from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
 
 
@@ -82,6 +82,8 @@ if st_state.clicked_cell and st_state.module_choice:
 
 
 col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], vertical_alignment="top")
+with empty:
+    st.write(st_state)
 
 with col_habitat:
     sub_layout = ui_layouts["hab_sub"]
@@ -162,14 +164,23 @@ with col_habitat:
                 key="module_choice")
 
     with col_stats:
-        st_state.habitat["name"] = st.text_input(label="Habitat name:", label_visibility="visible",
-                                                 placeholder="Habitat name...", max_chars=40)
+        st.text_input(label="Habitat name:", label_visibility="visible", placeholder="Habitat name...", max_chars=40,
+                      key="hab_name",
+                      value=st_state.get("habitat", {}).get("name", ""),
+                      on_change=lambda: st_state.setdefault("habitat", {}).update({"name": st_state.hab_name}))
+
         if st_state.habitat["type"] == "base":
-            with st.expander(label="Site resources..."):
-                st.number_input(label="water", label_visibility="collapsed", value="min", step=1.00)
-                st.number_input(label="volatiles", label_visibility="collapsed", value="min", step=1.00)
-                st.number_input(label="metals", label_visibility="collapsed", value="min", step=1.00)
-                st.number_input(label="nobleMetals", label_visibility="collapsed", value="min", step=1.00)
-                st.number_input(label="fissiles", label_visibility="collapsed", value="min", step=1.00)
+            with st.popover(label="Base Site Resources", use_container_width=True):
+                num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
+
+                for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
+                    popover_col1, popover_col2 = st.columns([0.5, 5])
+                    with popover_col1:
+                        st.write(get_base64_image(res), unsafe_allow_html=True)
+                    with popover_col2:
+                        st.number_input(label=res, key=f"site_res_{res}", **num_input_kwargs,
+                                        value=st_state.get("habitat", {}).get("site_res", {}).get(res, 0.00),
+                                        on_change=lambda r=res: st_state.setdefault("habitat", {}).setdefault(
+                                            "site_res", {}).update({r: st_state[f"site_res_{r}"]}))
 
         display_habitat_stats(st_state.habitat, all_modules)
