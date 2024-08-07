@@ -1,6 +1,8 @@
 from PIL import Image
 from typing import Any, Union, Dict
 
+from modules.habitat_stats import format_number
+
 ModuleData = Dict[str, Any]
 
 
@@ -57,37 +59,59 @@ def module_image(core: ModuleData, label: str, st_state, all_modules) -> Union[I
 
 def module_tooltip(core: ModuleData, label: str, st_state, all_modules) -> str:
     if st_state.habitat["cells"][label][-1] is None:
-        if st_state.habitat["cells"][label][0] == 2:
-            return core["friendlyName"]
+        # if st_state.habitat["cells"][label][0] == 2:
+        #     return core["friendlyName"]
         return "Empty Module"
+
+    pretty_names = {
+        "power": "Power",
+        "money": "Money",
+        "water": "Water",
+        "volatiles": "Volatiles",
+        "metals": "Metals",
+        "nobleMetals": "Noble Metals",
+        "fissiles": "Fissiles",
+        "incomeMoney_month": "Money",
+        "missionControl": "Mission Control",
+        "incomeResearch_month": "Research",
+        "incomeProjects": "Projects",
+        "incomeInfluence_month": "Influence",
+        "incomeOps_month": "Ops",
+        "incomeAntimatter_month": "Antimatter",
+    }
 
     module_name = st_state.habitat["cells"][label][-1]
     module_stat = all_modules[module_name]
 
-    inc_power = f"power: {module_stat['power']}, " if module_stat["power"] > 0 else ""
-    exp_power = f"power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
+    # Tooltip bit: Monthly Incomes and Bonuses
+    relevant_items = [(k, v) for k, v in module_stat.items() if k in pretty_names and v > 0]
+    sorted_incomes = sorted(relevant_items, key=lambda x: list(pretty_names.keys()).index(x[0]))
+    incomes_bonuses = ", ".join([f"{pretty_names[k]}: {format_number(v)}" for k, v in sorted_incomes if v > 0])
+
+    tech_bonuses = ", ".join([f"{tech['category']}: {format_number(tech['bonus'] * 100)}%"
+                              for tech in module_stat.get("techBonuses", [])])
+    if tech_bonuses:
+        incomes_bonuses += ", " + tech_bonuses if incomes_bonuses else tech_bonuses
+
+    # Tooltip bit: Monthly Support Costs
+    power_cost = f"Power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
 
     crew_costs = (module_stat["crew"] * 7 / 240)
     total_costs = module_stat["supportMaterials_month"].copy()
     total_costs["water"] = total_costs.get("water", 0) + crew_costs
     total_costs["volatiles"] = total_costs.get("volatiles", 0) + crew_costs
 
-    resource_order = ["power", "money", "water", "volatiles"]
+    sorted_costs = sorted(total_costs.items(), key=lambda x: list(pretty_names.keys()).index(x[0]))
+    support_costs = ", ".join([f"{pretty_names[k]}: -{format_number(v)}" for k, v in sorted_costs if v != 0])
 
-    def sort_key(item):
-        if item[0] in resource_order:
-            return resource_order.index(item[0])
-        return len(resource_order)
-
-    sorted_costs = sorted(total_costs.items(), key=sort_key)
-    support_costs = ", ".join([f"{k}: {v.__round__(2)}" for k, v in sorted_costs if v != 0])
-
+    # Main tooltip
     tooltip = f"""\
 {module_stat['friendlyName']}
 Tier {module_stat['tier']} module, {module_stat['crew']} crew, {module_stat['baseMass_tons']} tons
-Monthly Incomes and Bonuses
-{inc_power}
-Monthly Support Costs
-{exp_power}{support_costs}"""
+
+Monthly Incomes and Bonuses:
+{incomes_bonuses}
+Monthly Support Costs:
+{power_cost}{support_costs}"""
 
     return tooltip

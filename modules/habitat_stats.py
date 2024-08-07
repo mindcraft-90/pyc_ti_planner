@@ -30,11 +30,12 @@ def get_default_stats() -> Dict[str, Any]:
     }
 
 
-def format_number(value: float) -> str:
+def format_number(value: float) -> float | int:
     """
     Format float numbers to 3 decimals and strip trailing '0's and '.'s.
     """
-    return f"{value:.3f}".rstrip('0').rstrip('.')
+    # return f"{value:.3f}".rstrip('0').rstrip('.')
+    return value.__round__(2) if value % 1 else int(value)
 
 
 def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) -> str:
