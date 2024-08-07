@@ -28,7 +28,7 @@ def get_raw_module_data() -> Dict[str, ModuleData]:
                 if not any(d.get(k, False) for k in excluded_module_types)}
 
 
-def filter_modules(core: ModuleData, tier_filters: List[str]) -> Dict[str, ModuleData]:
+def filter_modules(core: ModuleData, tier_filters: List[str], mining_cell=False) -> Dict[str, ModuleData]:
     """
     Filter out modules based on core tier and user choice.
     Returns a dictionary of filtered modules.
@@ -38,11 +38,12 @@ def filter_modules(core: ModuleData, tier_filters: List[str]) -> Dict[str, Modul
     else:
         tiers = {int(f.split()[-1]) for f in tier_filters if f.startswith("Tier")}
 
-    return {k: v for k, v in all_modules.items()
+    mods = {k: v for k, v in all_modules.items()
             if (v["habType"] in (core["habType"], "Any")
                 and v["tier"] in tiers
                 and not v.get("coreModule", False))
             }
+    return {k: v for k, v in mods.items() if v.get("mine", False)} if mining_cell else mods
 
 
 def generate_habitat_layout(core: ModuleData) -> None:
@@ -129,7 +130,7 @@ with col_habitat:
 
     # 🤷 shrug off habitat tier and type changes...
     if "first_run" not in st_state \
-            or active_core["tier"] != st_state.habitat["tier"]\
+            or active_core["tier"] != st_state.habitat["tier"] \
             or habitat_type.lower() != st_state.habitat["type"]:
         st_state.habitat = {"cells": {}}
         st_state.clicked_cell = None
@@ -152,7 +153,8 @@ with col_habitat:
 
     with col_module_select:
         if st_state.clicked_cell and st_state.habitat["cells"][st_state.clicked_cell][0] != 2:
-            available_modules = filter_modules(active_core, active_filters)
+            is_mining_cell = st_state.habitat["cells"][st_state.clicked_cell][0] == 3
+            available_modules = filter_modules(active_core, active_filters, is_mining_cell)
 
             cell_key = st_state.clicked_cell
             st.selectbox(
@@ -178,9 +180,9 @@ with col_habitat:
                     with popover_col1:
                         st.write(get_base64_image(res), unsafe_allow_html=True)
                     with popover_col2:
-                        st.number_input(label=res, key=f"site_res_{res}", **num_input_kwargs,
-                                        value=st_state.get("habitat", {}).get("site_res", {}).get(res, 0.00),
+                        st.number_input(label=res, key=f"site_{res}", **num_input_kwargs,
+                                        value=st_state.get("habitat", {}).get("site", {}).get(res, 0.00),
                                         on_change=lambda r=res: st_state.setdefault("habitat", {}).setdefault(
-                                            "site_res", {}).update({r: st_state[f"site_res_{r}"]}))
+                                            "site", {}).update({r: st_state[f"site_{r}"]}))
 
         display_habitat_stats(st_state.habitat, all_modules)

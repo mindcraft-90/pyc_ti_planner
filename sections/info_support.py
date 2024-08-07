@@ -56,6 +56,9 @@ with st.expander(label="Version 0.1.1 - Hotfixes"):
         - Disallowed right-click for contest menu on module images.
         - Added right-click event on module image to clear it.
         - Adjusted module image tooltip to show more data.
+        - Added habitat name field.
+        - Added site resource fields for Base Habitats.
+        - Combined Habitat Stats and Monthly Upkeep.
         """
     )
 with st.expander(label="Version 0.1.0 - 'The Big Bang'"):
