@@ -80,8 +80,8 @@ if state.clicked_cell and state.module_choice:
 
 
 col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], vertical_alignment="top")
-with empty:
-    st.write(state)
+# with empty:
+#     st.write(state)
 
 with col_habitat:
     sub_layout = ui_layouts["hab_sub"]

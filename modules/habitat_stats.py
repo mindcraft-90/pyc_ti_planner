@@ -18,17 +18,12 @@ def get_default_stats() -> c.ModuleData:
         "incomeResearch_month": 0,
         "incomeProjects": 0,
         "missionControl": 0,
-        # water
-        # volatiles
-        # metals
-        # nobles
-        # fissiles
+        "supportMaterials_month": {"water": 0, "volatiles": 0, "metals": 0, "nobleMetals": 0, "fissiles": 0},
         "incomeAntimatter_month": 0,
         "allowsResupply": False,
         "CanFoundHabs": False,  # first nanofactory is 25%, second is 30% ...
         "allowsShipConstruction": False,
         "spaceCombatValue": 0,
-        "supportMaterials_month": {},
         "techBonuses": {},
         "leoBonuses": {},
     }
@@ -111,13 +106,16 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
+    st.write(hab_stats)
     st.markdown("**Habitat Stats**")
+    st.write(f"Crew {hab_stats['crew']}, Mass {hab_stats['baseMass_tons']} tons")
+
     col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
     cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
     col_stats_index = 0
 
     for k in hab_stats:
-        if hab_stats[k] != 0:
+        if hab_stats[k] != 0 and k not in ("crew", "baseMass_tons"):
             match k:
 
                 case "power":
@@ -127,11 +125,11 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "supportMaterials_month":
-                    st.write("######")
-                    st.markdown("**Monthly Upkeep**")
-                    col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4, u = st.columns(c.ui_layouts["hab_stats"])
-                    cols_upkeep = [col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4]
-                    col_upkeep_index = 0
+                    # st.write("######")
+                    # st.markdown("**Monthly Upkeep**")
+                    # col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4, u = st.columns(c.ui_layouts["hab_stats"])
+                    # cols_upkeep = [col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4]
+                    # col_upkeep_index = 0
 
                     # Add farm module discounts for volatiles and water
                     for sub_k in hab_stats[k]:
@@ -142,13 +140,13 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                                         discount = c.farm_supply[module] * c.pop_upkeep[res]
                                         hab_stats[k][res] = hab_stats[k].get(res, 0) - discount
 
-                        with cols_upkeep[col_upkeep_index]:
-                            if hab_stats[k][sub_k] <= 0:
+                        with cols_stats[col_stats_index]:
+                            if hab_stats[k][sub_k] == 0 or sub_k == "money":
                                 continue
                             icon = get_base64_image(sub_k)
-                            value = hab_stats[k][sub_k]
+                            value = -1 * hab_stats[k][sub_k]
                             st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
-                        col_upkeep_index = (col_upkeep_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                        col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "techBonuses":
                     if not hab_stats[k]:
@@ -182,19 +180,13 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                         else:
                             st.write(f"{sub_k.title()}: {hab_stats[k][sub_k]}% :gray[(Max: 30%)]")
 
-                case "CanFoundHabs":
-                    if hab_stats["CanFoundHabs"]:
-                        icon = get_base64_image(k)
-                        st.write(f"{icon}", unsafe_allow_html=True)
-
-                case "crew" | "baseMass_tons":
-                    pass
-
                 case _:
                     with cols_stats[col_stats_index]:
                         icon = get_base64_image(k)
-                        if k in ("allowsShipConstruction", "allowsResupply"):
-                            st.write(f"{icon}", unsafe_allow_html=True)
-                        else:
-                            st.write(f"{icon} {hab_stats[k]}", unsafe_allow_html=True)
-                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                        value = hab_stats[k] - hab_stats["supportMaterials_month"]["money"] \
+                            if k == "incomeMoney_month" else hab_stats[k]
+
+                        display = f"{icon} {format_number(value)}" if k not in (
+                            "allowsResupply", "CanFoundHabs", "allowsShipConstruction") else f"{icon}"
+                        st.write(display, unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4
