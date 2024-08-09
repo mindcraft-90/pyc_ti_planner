@@ -111,7 +111,7 @@ with col_habitat:
         options=list(cores.keys()),
         format_func=lambda x: f"Tier {cores[x]['tier']} - {cores[x]['friendlyName']}",
         index=list(cores.keys()).index(state.get("habitat", {}).get("core"))
-        if state.get("habitat", {}).get("core") in cores else 0,
+        if state.get("habitat", {}).get("core") in cores else None,
         placeholder="Select a habitat core...")
 
     if not core_choice:
