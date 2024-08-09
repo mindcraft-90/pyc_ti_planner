@@ -33,7 +33,6 @@ def format_number(value: float) -> float | int:
     """
     Format float numbers to 3 decimals and strip trailing '0's and '.'s.
     """
-    # return f"{value:.3f}".rstrip('0').rstrip('.')
     return value.__round__(1) if value % 1 else int(value)
 
 
@@ -106,7 +105,6 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
-    st.write(hab_stats)
     st.markdown("**Habitat Stats**")
     st.write(f"Crew {hab_stats['crew']}, Mass {hab_stats['baseMass_tons']} tons")
 
@@ -115,7 +113,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
     col_stats_index = 0
 
     for k in hab_stats:
-        if hab_stats[k] != 0 and k not in ("crew", "baseMass_tons"):
+        if (hab_stats[k] != 0 or k == "incomeMoney_month") and k not in ("crew", "baseMass_tons"):
             match k:
 
                 case "power":
@@ -125,20 +123,20 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "supportMaterials_month":
-                    # st.write("######")
-                    # st.markdown("**Monthly Upkeep**")
-                    # col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4, u = st.columns(c.ui_layouts["hab_stats"])
-                    # cols_upkeep = [col_upkeep1, col_upkeep2, col_upkeep3, col_upkeep4]
-                    # col_upkeep_index = 0
-
                     # Add farm module discounts for volatiles and water
                     for sub_k in hab_stats[k]:
-                        match sub_k:
-                            case res if res in ("volatiles", "water"):
-                                for module in module_list:
-                                    if module in c.farm_supply.keys():
-                                        discount = c.farm_supply[module] * c.pop_upkeep[res]
-                                        hab_stats[k][res] = hab_stats[k].get(res, 0) - discount
+                        if sub_k in ("volatiles", "water"):
+                            for module in module_list:
+                                if module in c.farm_supply.keys():
+                                    discount = c.farm_supply[module] * c.pop_upkeep[sub_k]
+                                    hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) - discount
+                            # Farms would be a net gain if not forced to 0
+                            hab_stats[k][sub_k] = 0 if hab_stats[k][sub_k] < 0 else hab_stats[k][sub_k]
+
+                        if any("Mining" in m for m in module_list):
+                            # Sub_k is a positive number that gets flipped to a negative later.
+                            # Therefor, we substract the site resource if a mining module exists.
+                            hab_stats[k][sub_k] -= habitat_data.get("site", {}).get(sub_k, 0)
 
                         with cols_stats[col_stats_index]:
                             if hab_stats[k][sub_k] == 0 or sub_k == "money":

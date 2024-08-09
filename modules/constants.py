@@ -30,7 +30,7 @@ mat_icons = {
 pop_upkeep = {
     "volatiles": 7 / 240,
     "water": 7 / 240,
-    "money": 41 / 5000,
+    # "money": 41 / 5000,
 }
 
 # Amount of pops that each farm can support, in water / volatiles consumption
