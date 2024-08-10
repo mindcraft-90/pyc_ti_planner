@@ -2,7 +2,7 @@ import json
 import streamlit as st
 
 from modules.clickable_image import clickable_image
-from modules.constants import ModuleData, habitat_layouts, solar_modifiers, ui_layouts
+from modules.constants import ModuleData, habitat_layouts, solar_modifiers, ui_layouts, pretty_stats
 from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
 
@@ -30,6 +30,8 @@ def filter_modules(core: ModuleData, tier_filters: list[str], mining_cell=False)
     Filter out modules based on core tier and user choice.
     Returns a dictionary of filtered modules.
     """
+    income_filters = [pretty_stats[f] for f in tier_filters if not f.startswith("Tier")]
+    tier_filters = [f for f in tier_filters if f.startswith("Tier")]
     if not tier_filters or "All Modules" in tier_filters:
         tiers = range(1, core["tier"] + 1)
     else:
@@ -40,6 +42,9 @@ def filter_modules(core: ModuleData, tier_filters: list[str], mining_cell=False)
                 and v["tier"] in tiers
                 and not v.get("coreModule", False))
             }
+
+    if income_filters:
+        mods = {k: v for k, v in mods.items() if any(v[income] > 0 for income in income_filters)}
     return {k: v for k, v in mods.items() if v.get("mine", False)} if mining_cell else mods
 
 
@@ -80,9 +85,6 @@ if state.clicked_cell and state.module_choice:
 
 
 col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], vertical_alignment="top")
-with empty:
-    st.write(state)
-
 with col_habitat:
     sub_layout = ui_layouts["hab_sub"]
     col_core_choice, col_habitat_type, col_solar_body \
@@ -142,11 +144,12 @@ with col_habitat:
 
     with col_module_filters:
         available_tiers: list[str] = [f"Tier {i}" for i in range(1, active_core["tier"] + 1)]
+        stat_incomes: list[str] = list(pretty_stats.keys())
         active_filters: list[str] = st.multiselect(
             label="user_filters",
             label_visibility="collapsed",
             placeholder="Filter modules...",
-            options=(["All Modules"] + available_tiers))
+            options=(["All Modules"] + available_tiers + stat_incomes))
 
     with col_module_select:
         if state.clicked_cell and state.habitat["cells"][state.clicked_cell][0] != 2:

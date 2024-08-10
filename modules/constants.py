@@ -118,3 +118,15 @@ habitat_layouts = {
             [1, 1, 1, 0, 1, 1, 1]]
     }
 }
+
+pretty_stats = {
+    "Power": "power",
+    "Money": "incomeMoney_month",
+    "Influence": "incomeInfluence_month",
+    "Ops": "incomeOps_month",
+    "Research": "incomeResearch_month",
+    "Projects": "incomeProjects",
+    "Mission Control": "incomeProjects",
+    "Antimatter": "incomeAntimatter_month",
+    "Combat Value": "spaceCombatValue",
+}

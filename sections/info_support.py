@@ -59,6 +59,7 @@ with st.expander(label="Version 0.1.1 - Hotfixes"):
         - Added habitat name field.
         - Added site resource fields for Base Habitats.
         - Combined Habitat Stats and Monthly Upkeep.
+        - Added more module filter options.
         """
     )
 with st.expander(label="Version 0.1.0 - 'The Big Bang'"):
