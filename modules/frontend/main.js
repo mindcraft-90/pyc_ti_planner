@@ -2,66 +2,68 @@
 // Code borrowed and adapted from blackary.
 // https://github.com/blackary/streamlit-image-coordinates
 ////
+function rightClickEvent(value) {
+    Streamlit.setComponentValue(0)
+}
 
-function sendValue(value) {
-  Streamlit.setComponentValue(value)
+function leftClickEvent(value) {
+    Streamlit.setComponentValue(value)
 }
 
 function onRender(event) {
-  let {src, height, width, use_column_width, tooltip} = event.detail.args;
+    let {src, height, width, use_column_width, tooltip} = event.detail.args;
+    const img = document.getElementById("image");
 
-  const img = document.getElementById("image");
-
-  if (img.src !== src) {
-    img.src = src;
-  }
-
-  function resizeImage() {
-    img.classList.remove("auto", "fullWidth");
-    img.removeAttribute("width");
-    img.removeAttribute("height");
-
-    if (use_column_width === "always" || use_column_width === true) {
-      img.classList.add("fullWidth");
-    } else if (use_column_width === "auto") {
-      img.classList.add("auto");
-    } else {
-      if (!width && !height) {
-        width = img.naturalWidth;
-        height = img.naturalHeight;
-      } else if (!height) {
-        height = width * img.naturalHeight / img.naturalWidth;
-      } else if (!width) {
-        width = height * img.naturalWidth / img.naturalHeight;
-      }
-
-      img.width = width;
-      img.height = height;
+    if (img.src !== src) {
+        img.src = src;
     }
+
+    function resizeImage() {
+        img.classList.remove("auto", "fullWidth");
+        img.removeAttribute("width");
+        img.removeAttribute("height");
+
+        if (use_column_width === "always" || use_column_width === true) {
+            img.classList.add("fullWidth");
+        } else if (use_column_width === "auto") {
+            img.classList.add("auto");
+        } else {
+            if (!width && !height) {
+                width = img.naturalWidth;
+                height = img.naturalHeight;
+            } else if (!height) {
+                height = width * img.naturalHeight / img.naturalWidth;
+            } else if (!width) {
+                width = height * img.naturalWidth / img.naturalHeight;
+            }
+            img.width = width;
+            img.height = height;
+        }
+
+        Streamlit.setFrameHeight(img.height);
+    }
+
+    img.onload = resizeImage;
+    window.addEventListener("resize", resizeImage);
 
     // Add event listeners for hover effect
     img.onmouseenter = function() {
-      this.classList.add('highlight');
-      this.title = tooltip || '';
+        this.classList.add('highlight');
+        this.title = tooltip || '';
     };
     img.onmouseleave = function() {
-      this.classList.remove('highlight');
+        this.classList.remove('highlight');
     };
 
-    // Prevent right-click context menu
+    // When image is left clicked, send the timestamp to Python
+    img.onclick = () => leftClickEvent(Date.now());
+
+    // Prevent right-click context menu and send a null value
     img.oncontextmenu = function(e) {
-      e.preventDefault();
-      return false;
+        e.preventDefault();
+        rightClickEvent();
+        return false;
     };
-
-    Streamlit.setFrameHeight(img.height);
-  }
-
-  img.onload = resizeImage;
-  window.addEventListener("resize", resizeImage);
-
-  // When image is clicked, send the timestamp to Python
-  img.onclick = () => sendValue(Date.now());
 }
 
 // Render the component whenever python sends a "render event"

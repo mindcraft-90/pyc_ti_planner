@@ -1,16 +1,16 @@
 import base64
 import streamlit as st
-from typing import Dict, Any
 
 from modules import constants as c
 
 
-def get_default_stats() -> Dict[str, Any]:
+def get_default_stats() -> c.ModuleData:
     """
     Retrieve a blank set of desired habitat stats.
     """
     return {
         "crew": 0,
+        "baseMass_tons": 0,
         "power": 0,
         "incomeMoney_month": 0,
         "incomeInfluence_month": 0,
@@ -18,22 +18,22 @@ def get_default_stats() -> Dict[str, Any]:
         "incomeResearch_month": 0,
         "incomeProjects": 0,
         "missionControl": 0,
-        "spaceCombatValue": 0,
+        "supportMaterials_month": {"water": 0, "volatiles": 0, "metals": 0, "nobleMetals": 0, "fissiles": 0},
         "incomeAntimatter_month": 0,
-        "allowsShipConstruction": False,
         "allowsResupply": False,
-        "CanFoundHabs": False,
-        "supportMaterials_month": {},
+        "CanFoundHabs": False,  # first nanofactory is 25%, second is 30% ...
+        "allowsShipConstruction": False,
+        "spaceCombatValue": 0,
         "techBonuses": {},
         "leoBonuses": {},
     }
 
 
-def format_number(value: float) -> str:
+def format_number(value: float) -> float | int:
     """
     Format float numbers to 3 decimals and strip trailing '0's and '.'s.
     """
-    return f"{value:.3f}".rstrip('0').rstrip('.')
+    return value.__round__(1) if value % 1 else int(value)
 
 
 def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) -> str:
@@ -50,7 +50,7 @@ def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) ->
     return f"<img src='data: image/png; base64, {encoded_data}' style='width: {width}px; height: {height}px; '>"
 
 
-def update_habitat_stats(module: Dict[str, Any], hab_stats: Dict[str, Any], solar_body: str) -> Dict[str, Any]:
+def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
     """
@@ -93,56 +93,58 @@ def update_habitat_stats(module: Dict[str, Any], hab_stats: Dict[str, Any], sola
     return hab_stats
 
 
-def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, Dict[str, Any]]) -> None:
+def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.ModuleData]) -> None:
     """
     Display the habitat stats in the Streamlit app.
     """
     module_list = [m[1] for m in habitat_data["cells"].values() if m[1]]
 
     hab_stats = get_default_stats()
+    solar_body = habitat_data["body"]
     for module in module_list:
         module_data = all_modules[module]
-        solar_body = habitat_data["body"]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
     st.markdown("**Habitat Stats**")
-    col_stats1, col_stats2, s = st.columns(c.ui_layouts["hab_stats"], gap="small")
-    cols_stats = [col_stats1, col_stats2]
+    st.write(f"Crew {hab_stats['crew']}, Mass {hab_stats['baseMass_tons']} tons")
+
+    col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
+    cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
     col_stats_index = 0
 
     for k in hab_stats:
-        if hab_stats[k] != 0:
+        if (hab_stats[k] != 0 or k == "incomeMoney_month") and k not in ("crew", "baseMass_tons"):
             match k:
 
                 case "power":
                     icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                     with cols_stats[col_stats_index]:
-                        st.write(f"{icon}: {format_number(hab_stats[k])}", unsafe_allow_html=True)
-                    col_stats_index = 1 - col_stats_index  # Toggle between column 0 and 1
+                        st.write(f"{icon} {format_number(hab_stats[k])}", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "supportMaterials_month":
-                    st.write("######")
-                    st.markdown("**Monthly Upkeep**")
-                    col_upkeep1, col_upkeep2, u = st.columns(c.ui_layouts["hab_stats"], gap="small")
-                    cols_upkeep = [col_upkeep1, col_upkeep2]
-                    col_upkeep_index = 0
-
-                    # Add farm module discounts for volatiles and water/
+                    # Add farm module discounts for volatiles and water
                     for sub_k in hab_stats[k]:
-                        match sub_k:
-                            case res if res in ("volatiles", "water"):
-                                for module in module_list:
-                                    if module in c.farm_supply.keys():
-                                        discount = c.farm_supply[module] * c.pop_upkeep[res]
-                                        hab_stats[k][res] = hab_stats[k].get(res, 0) - discount
+                        if sub_k in ("volatiles", "water"):
+                            for module in module_list:
+                                if module in c.farm_supply.keys():
+                                    discount = c.farm_supply[module] * c.pop_upkeep[sub_k]
+                                    hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) - discount
+                            # Farms would be a net gain if not forced to 0
+                            hab_stats[k][sub_k] = 0 if hab_stats[k][sub_k] < 0 else hab_stats[k][sub_k]
 
-                        with cols_upkeep[col_upkeep_index]:
-                            if hab_stats[k][sub_k] <= 0:
+                        if any("Mining" in m for m in module_list):
+                            # Sub_k is a positive number that gets flipped to a negative later.
+                            # Therefor, we substract the site resource if a mining module exists.
+                            hab_stats[k][sub_k] -= habitat_data.get("site", {}).get(sub_k, 0)
+
+                        with cols_stats[col_stats_index]:
+                            if hab_stats[k][sub_k] == 0 or sub_k == "money":
                                 continue
                             icon = get_base64_image(sub_k)
-                            value = hab_stats[k][sub_k]
-                            st.write(f"{icon}: {format_number(value)}", unsafe_allow_html=True)
-                        col_upkeep_index = 1 - col_upkeep_index
+                            value = -1 * hab_stats[k][sub_k]
+                            st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
+                        col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "techBonuses":
                     if not hab_stats[k]:
@@ -150,17 +152,16 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                     st.write("######")
                     st.markdown("""**Tech Bonuses**  
                        :gray[(Diminished past 50%)]""")
-                    col_tech1, col_tech2, u = st.columns(c.ui_layouts["hab_stats"], gap="small")
-                    cols_tech = [col_tech1, col_tech2]
+                    col_tech1, col_tech2, col_tech3, col_tech4, t = st.columns(c.ui_layouts["hab_stats"])
+                    cols_tech = [col_tech1, col_tech2, col_tech3, col_tech4]
                     col_tech_index = 0
 
                     for sub_k in hab_stats[k]:
                         with cols_tech[col_tech_index]:
                             icon = get_base64_image(sub_k)
                             value = hab_stats[k][sub_k] * 100
-                            st.write(f"{icon}: {format_number(value)}%",
-                                     unsafe_allow_html=True)
-                        col_tech_index = 1 - col_tech_index
+                            st.write(f"{icon} {format_number(value)}%", unsafe_allow_html=True)
+                        col_tech_index = (col_tech_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "leoBonuses":
                     if not hab_stats[k]:
@@ -177,16 +178,13 @@ def display_habitat_stats(habitat_data: Dict[str, Any], all_modules: Dict[str, D
                         else:
                             st.write(f"{sub_k.title()}: {hab_stats[k][sub_k]}% :gray[(Max: 30%)]")
 
-                case "CanFoundHabs":
-                    if hab_stats["CanFoundHabs"]:
-                        icon = get_base64_image(k)
-                        st.write(f"{icon}", unsafe_allow_html=True)
-
                 case _:
                     with cols_stats[col_stats_index]:
                         icon = get_base64_image(k)
-                        if k in ("allowsShipConstruction", "allowsResupply"):
-                            st.write(f"{icon}", unsafe_allow_html=True)
-                        else:
-                            st.write(f"{icon}: {hab_stats[k]}", unsafe_allow_html=True)
-                    col_stats_index = 1 - col_stats_index  # Toggle between column 0 and 1
+                        value = hab_stats[k] - hab_stats["supportMaterials_month"]["money"] \
+                            if k == "incomeMoney_month" else hab_stats[k]
+
+                        display = f"{icon} {format_number(value)}" if k not in (
+                            "allowsResupply", "CanFoundHabs", "allowsShipConstruction") else f"{icon}"
+                        st.write(display, unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4

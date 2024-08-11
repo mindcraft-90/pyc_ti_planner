@@ -7,7 +7,7 @@ to help with habitat and ship design planning.
 
 ### Checkout the web app [here](https://terra-planner.com/)
 Author: [mindcraft-90](https://github.com/mindcraft-90)\
-Code: [Github Repository](https://github.com/mindcraft-90/pyc_ti_planner)
+Code: [GitHub Repository](https://github.com/mindcraft-90/pyc_ti_planner)
 
 This website app was built using [Streamlit](https://streamlit.io/) and python 3.12.
 

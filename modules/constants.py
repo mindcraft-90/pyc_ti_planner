@@ -1,33 +1,43 @@
+# Module data type
+ModuleData = dict[str, str | int | list[dict[str, float]] | dict | bool]
+
 # App UI resources
-ui_layouts = {"hab_main": [1, 3, 0.25],
-              "hab_sub": [4, 1.5, 2],
-              "hab_stats": [1, 1, 0.25]}
+ui_layouts = {
+    "hab_main": [1.5, 3, 1.5],
+    "hab_sub": [4, 1.5, 2],
+    "hab_stats": [1, 1, 1, 1, 1],
+}
 
-st_icons = {"home": "🏠",
-            "hab": "🛰️",
-            "ship": "🛸",
-            "info": "ℹ️",
-            "upload": "🔼",
-            "web": "🌐"}
+st_icons = {
+    "home": "🏠",
+    "hab": "🛰️",
+    "ship": "🛸",
+    "info": "ℹ️",
+    "upload": "🔼",
+    "web": "🌐"
+}
 
-mat_icons = {"home": ":material/home_app_logo:",
-             "hab": ":material/satellite_alt:",
-             "ship": ":material/rocket_launch:",
-             "info": ":material/info:",
-             "upload": ":material/upload:",
-             "web": ":material/language:"}
+mat_icons = {
+    "home": ":material/home_app_logo:",
+    "hab": ":material/satellite_alt:",
+    "ship": ":material/rocket_launch:",
+    "info": ":material/info:",
+    "upload": ":material/upload:",
+    "web": ":material/language:"
+}
 
-# Population water and volatiles consumption
+# Population water and volatiles consumption; ~0.0291666666666667
 pop_upkeep = {
-    "volatiles": 0.029,
-    "water": 0.029
+    "volatiles": 7 / 240,
+    "water": 7 / 240,
+    # "money": 41 / 5000,
 }
 
 # Amount of pops that each farm can support, in water / volatiles consumption
 farm_supply = {
-    "Hydroponics Bay": 50,
+    "HydroponicsBay": 50,
     "Farm": 300,
-    "Agriculture Complex": 3000
+    "AgricultureComplex": 3000
 }
 
 # Solar power output modifiers based on solar bodies
@@ -107,4 +117,16 @@ habitat_layouts = {
             [0, 1, 0, 0, 0, 1, 0],
             [1, 1, 1, 0, 1, 1, 1]]
     }
+}
+
+pretty_stats = {
+    "Power": "power",
+    "Money": "incomeMoney_month",
+    "Influence": "incomeInfluence_month",
+    "Ops": "incomeOps_month",
+    "Research": "incomeResearch_month",
+    "Projects": "incomeProjects",
+    "Mission Control": "incomeProjects",
+    "Antimatter": "incomeAntimatter_month",
+    "Combat Value": "spaceCombatValue",
 }
