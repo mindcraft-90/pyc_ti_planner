@@ -51,9 +51,31 @@ def module_image(core: ModuleData, label: str, state, all_modules):
     #     elif label in ["1_4", "1_5", "1_6"]:
     #         module_sprite = module_sprite.rotate(90)
 
+    base_size = (512, 128) if cell[0] == 3 and cell[-1] else (128, 128)
+    sprite_base = Image.new('RGBA', base_size, (0, 0, 0, 0))
+
+    # Resize Module Sprite based on Tier
+    tier_sizes = {
+        1: {1: 1.0},
+        2: {1: 0.7, 2: 1.0},
+        3: {1: 0.4, 2: 0.7, 3: 1.0}
+    }
+
+    module_tier = all_modules[cell[-1]]['tier'] if cell[-1] else core['tier']
+    max_dimension = int(base_size[0] * tier_sizes[core["tier"]][module_tier])
+    scale = min(max_dimension / module_sprite.width, max_dimension / module_sprite.height)
+    new_size = (int(module_sprite.width * scale), int(module_sprite.height * scale))
+
+    module_sprite = module_sprite.resize(new_size)
+
+    x = (base_size[0] - module_sprite.width) // 2
+    y = (base_size[1] - module_sprite.height) // 2
+    sprite_base.paste(im=module_sprite, box=(x, y), mask=module_sprite)
+
     if label == state.clicked_cell and cell[0] != 2:
-        return add_frame(module_sprite, wide=True if cell[0] == 3 and cell[-1] else False)
-    return module_sprite
+        return add_frame(sprite_base, wide=True if cell[0] == 3 and cell[-1] else False)
+
+    return sprite_base
 
 
 def module_tooltip(label: str, state, all_modules) -> str:
