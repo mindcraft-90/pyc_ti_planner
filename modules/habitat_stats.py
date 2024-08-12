@@ -29,11 +29,11 @@ def get_default_stats() -> c.ModuleData:
     }
 
 
-def format_number(value: float) -> float | int:
+def format_number(value: float, precision: int = 1) -> float | int:
     """
     Format float numbers to 3 decimals and strip trailing '0's and '.'s.
     """
-    return value.__round__(1) if value % 1 else int(value)
+    return value.__round__(precision) if value % 1 else int(value)
 
 
 def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) -> str:
@@ -122,6 +122,12 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                         st.write(f"{icon} {format_number(hab_stats[k])}", unsafe_allow_html=True)
                     col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
+                case "incomeProjects":
+                    icon = get_base64_image(k)
+                    with cols_stats[col_stats_index]:
+                        st.write(f"{icon} {hab_stats[k] * 5}%", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+
                 case "supportMaterials_month":
                     # Add farm module discounts for volatiles and water
                     for sub_k in hab_stats[k]:
@@ -145,6 +151,27 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                             value = -1 * hab_stats[k][sub_k]
                             st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
                         col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+
+                case "incomeAntimatter_month":
+                    icon = get_base64_image(k)
+                    prefixes = ['', 'µ', 'n', 'p', 'f', 'a']
+                    prefix_values = [1e0, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18]
+
+                    if hab_stats[k] >= 0.1:
+                        value = format_number(hab_stats[k], precision=2)
+                    elif hab_stats[k] >= 0.001:
+                        value = f".{f'.{hab_stats[k]:.3f}'.split('.')[-1]}"
+                    elif 0.001 > hab_stats[k] > 0:
+                        for val, prefix in zip(prefix_values, prefixes):
+                            if abs(hab_stats[k]) >= val or prefix == 'a':
+                                value = f"{hab_stats[k] / val:.3f}".rstrip('0').rstrip('.') + prefix
+                                break
+                    else:
+                        value = hab_stats[k]
+
+                    with cols_stats[col_stats_index]:
+                        st.write(f"{icon} {value}", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
 
                 case "techBonuses":
                     if not hab_stats[k]:

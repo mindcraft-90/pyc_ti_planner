@@ -106,7 +106,8 @@ def module_tooltip(label: str, state, all_modules) -> str:
     # Tooltip bit: Monthly Incomes and Bonuses
     relevant_items = [(k, v) for k, v in module_stat.items() if k in pretty_names and v > 0]
     sorted_incomes = sorted(relevant_items, key=lambda x: list(pretty_names.keys()).index(x[0]))
-    incomes_bonuses = ", ".join([f"{pretty_names[k]}: {format_number(v)}" for k, v in sorted_incomes if v > 0])
+    incomes_bonuses = ", ".join([f"{pretty_names[k]}: {v if k == 'incomeAntimatter_month' else format_number(v)}"
+                                 for k, v in sorted_incomes if v > 0])
 
     tech_bonuses = ", ".join([f"{tech['category']}: {format_number(tech['bonus'] * 100)}%"
                               for tech in module_stat.get("techBonuses", [])])
