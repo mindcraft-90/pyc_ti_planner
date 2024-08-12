@@ -48,6 +48,13 @@ st.write(
 
 st.write("######")
 st.write("#### 📜 Release Notes")
+with st.expander(label="Version 0.1.2 - Refined Stats"):
+    st.write(
+        """
+        - Module sprites resize based on tier difference.
+        - Added refined stat indicators for antimatter, construction bonus and projects
+        """
+    )
 with st.expander(label="Version 0.1.1 - Hotfixes"):
     st.write(
         """
