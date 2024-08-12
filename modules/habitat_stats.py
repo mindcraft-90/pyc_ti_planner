@@ -50,6 +50,32 @@ def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) ->
     return f"<img src='data: image/png; base64, {encoded_data}' style='width: {width}px; height: {height}px; '>"
 
 
+def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
+    bonuses = [
+        (0.40, t3_count, 0.15, 0.05),  # T3: base 40%, 15% for 2nd, 5% for subsequent
+        (0.25, t2_count, 0.20, 0.08),  # T2: base 25%, 20% for 2nd, 8% for subsequent
+        (0.10, t1_count, 0.20, 0.10)   # T1: base 10%, 20% for 2nd, 10% for subsequent
+    ]
+
+    # Sort bonuses by base value in descending order
+    sorted_bonuses = sorted(bonuses, key=lambda x: x[0], reverse=True)
+
+    total_bonus = 0
+    applied_bonuses = 0  # Track how many bonuses have been applied
+
+    for base_bonus, count, second_coeff, subsequent_coeff in sorted_bonuses:
+        for i in range(count):
+            if applied_bonuses == 0:
+                total_bonus += base_bonus  # Full bonus for the first module
+            elif applied_bonuses == 1:
+                total_bonus += base_bonus * second_coeff  # Apply second bonus with second coefficient
+            else:
+                total_bonus += base_bonus * subsequent_coeff  # Apply subsequent bonuses with subsequent coefficient
+            applied_bonuses += 1
+
+    return total_bonus if total_bonus <= 0.50 else 0.50  # Ensure the total bonus doesn't exceed 50%
+
+
 def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
@@ -174,24 +200,10 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     col_stats_index = (col_stats_index + 1) % 4
 
                 case "CanFoundHabs":
-                    t3_count = len([m for m in module_list if m == "NanofacturingComplex"])
-                    t2_count = len([m for m in module_list if m == "Nanofactory"])
-                    t1_count = len([m for m in module_list if m == "ConstructionModule"])
-
-                    bonuses = [(0.40, t3_count), (0.25, t2_count), (0.10, t1_count)]
-                    sorted_bonuses = sorted(bonuses, reverse=True)
-
-                    def get_next_bonus(previous_bonuses):
-                        return next((b for b, count in sorted_bonuses if
-                                     count > len(previous_bonuses) or (count > 0 and b not in previous_bonuses)), 0)
-
-                    first_bonus = get_next_bonus([])
-                    second_bonus = get_next_bonus([first_bonus])
-                    third_bonus = get_next_bonus([first_bonus, second_bonus])
-
-                    bonus = first_bonus + (second_bonus * 0.18) + (third_bonus * 0.0075)
-                    print(bonus * 100)
-                    print(f"{str(bonus * 100).split('.')[0]}%")
+                    t3_count = module_list.count("NanofacturingComplex")
+                    t2_count = module_list.count("Nanofactory")
+                    t1_count = module_list.count("ConstructionModule")
+                    bonus = construction_bonus(t3_count, t2_count, t1_count)
 
                     with cols_stats[col_stats_index]:
                         icon = get_base64_image(k)
