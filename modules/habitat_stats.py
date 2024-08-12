@@ -120,13 +120,13 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                     with cols_stats[col_stats_index]:
                         st.write(f"{icon} {format_number(hab_stats[k])}", unsafe_allow_html=True)
-                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                    col_stats_index = (col_stats_index + 1) % 4
 
                 case "incomeProjects":
                     icon = get_base64_image(k)
                     with cols_stats[col_stats_index]:
                         st.write(f"{icon} {hab_stats[k] * 5}%", unsafe_allow_html=True)
-                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                    col_stats_index = (col_stats_index + 1) % 4
 
                 case "supportMaterials_month":
                     # Add farm module discounts for volatiles and water
@@ -150,7 +150,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                             icon = get_base64_image(sub_k)
                             value = -1 * hab_stats[k][sub_k]
                             st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
-                        col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                        col_stats_index = (col_stats_index + 1) % 4
 
                 case "incomeAntimatter_month":
                     icon = get_base64_image(k)
@@ -171,7 +171,32 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
 
                     with cols_stats[col_stats_index]:
                         st.write(f"{icon} {value}", unsafe_allow_html=True)
-                    col_stats_index = (col_stats_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                    col_stats_index = (col_stats_index + 1) % 4
+
+                case "CanFoundHabs":
+                    t3_count = len([m for m in module_list if m == "NanofacturingComplex"])
+                    t2_count = len([m for m in module_list if m == "Nanofactory"])
+                    t1_count = len([m for m in module_list if m == "ConstructionModule"])
+
+                    bonuses = [(0.40, t3_count), (0.25, t2_count), (0.10, t1_count)]
+                    sorted_bonuses = sorted(bonuses, reverse=True)
+
+                    def get_next_bonus(previous_bonuses):
+                        return next((b for b, count in sorted_bonuses if
+                                     count > len(previous_bonuses) or (count > 0 and b not in previous_bonuses)), 0)
+
+                    first_bonus = get_next_bonus([])
+                    second_bonus = get_next_bonus([first_bonus])
+                    third_bonus = get_next_bonus([first_bonus, second_bonus])
+
+                    bonus = first_bonus + (second_bonus * 0.18) + (third_bonus * 0.0075)
+                    print(bonus * 100)
+                    print(f"{str(bonus * 100).split('.')[0]}%")
+
+                    with cols_stats[col_stats_index]:
+                        icon = get_base64_image(k)
+                        st.write(f"{icon} {round(bonus * 100)}%", unsafe_allow_html=True)
+                    col_stats_index = (col_stats_index + 1) % 4
 
                 case "techBonuses":
                     if not hab_stats[k]:
@@ -188,7 +213,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                             icon = get_base64_image(sub_k)
                             value = hab_stats[k][sub_k] * 100
                             st.write(f"{icon} {format_number(value)}%", unsafe_allow_html=True)
-                        col_tech_index = (col_tech_index + 1) % 4  # Toggle between column 0, 1, 2, 3
+                        col_tech_index = (col_tech_index + 1) % 4
 
                 case "leoBonuses":
                     if not hab_stats[k]:
