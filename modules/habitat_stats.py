@@ -53,23 +53,23 @@ def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) ->
 
 def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     bonuses = [
-        (t3_count, 0.40, 0.14, 0.05, 0.033),  # T3: base 40%, 15% for 2nd, 5% for subsequent
-        (t2_count, 0.25, 0.18, 0.08, 0.040),  # T2: base 25%, 20% for 2nd, 8% for subsequent
-        (t1_count, 0.10, 0.20, 0.10, 0.050)   # T1: base 10%, 20% for 2nd, 10% for subsequent
+        (t3_count, 0.40, 0.15, 0.06, 0.028),  # T3: base 40% + diminishing coefficients
+        (t2_count, 0.25, 0.18, 0.08, 0.040),  # T2: base 25% + diminishing coefficients
+        (t1_count, 0.10, 0.20, 0.10, 0.050),  # T1: base 10% + diminishing coefficients
     ]
 
     # Sort bonuses by base value in descending order
     sorted_bonuses = sorted(bonuses, key=lambda x: x[1], reverse=True)
 
-    total_bonus = 0
+    total_bonus = 0.0
     applied_bonuses = 0  # Track how many bonuses have been applied
     highest_tier_coeffs = None  # Store the coefficients of the highest tier applied
 
-    for count, base_bonus, second_coeff, third_coeff, subsequent_coeff in sorted_bonuses:
+    for count, base_bonus, *coeffs in sorted_bonuses:
         if count > 0 and highest_tier_coeffs is None:  # Determine the highest tier and use those coefficients
-            highest_tier_coeffs = (second_coeff, third_coeff, subsequent_coeff)
+            highest_tier_coeffs = coeffs
 
-        for i in range(count):
+        for _ in range(count):
             if applied_bonuses == 0:
                 total_bonus += base_bonus  # Full bonus for the first module
             elif applied_bonuses == 1:
@@ -80,7 +80,7 @@ def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
                 total_bonus += base_bonus * highest_tier_coeffs[2]  # Apply subsequent bonuses
             applied_bonuses += 1
 
-    return total_bonus if total_bonus <= 0.50 else 0.50  # Cap total bonus at 50%
+    return min(total_bonus, 0.50)  # Cap total bonus at 50%
 
 
 def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
@@ -144,7 +144,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
     with st.popover(label="Habitat Build Costs", use_container_width=True):
         for k, v in hab_stats["weightedBuildMaterials"].items():
             icon = get_base64_image(k)
-            st.write(f"{icon} {format_number(v)}", unsafe_allow_html=True)
+            st.write(f"{icon} {format_number(v * 30, precision=2)}", unsafe_allow_html=True)
 
     col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
     cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]

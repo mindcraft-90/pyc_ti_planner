@@ -165,24 +165,25 @@ with col_habitat:
                 placeholder=f"Editing: {module_tooltip(cell_key, state, all_modules)}",
                 key="module_choice")
 
-    with col_stats:
-        st.text_input(label="Habitat name:", label_visibility="visible", placeholder="Habitat name...", max_chars=40,
-                      key="hab_name",
-                      value=state.get("habitat", {}).get("name", ""),
-                      on_change=lambda: state.setdefault("habitat", {}).update({"name": state.hab_name}))
 
-        if state.habitat["type"] == "base":
-            with st.popover(label="Base Site Resources", use_container_width=True):
-                num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
+with col_stats:
+    st.text_input(label="Habitat name:", label_visibility="visible", placeholder="Habitat name...", max_chars=40,
+                  key="hab_name",
+                  value=state.get("habitat", {}).get("name", ""),
+                  on_change=lambda: state.setdefault("habitat", {}).update({"name": state.hab_name}))
 
-                for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
-                    popover_col1, popover_col2 = st.columns([0.5, 5])
-                    with popover_col1:
-                        st.write(get_base64_image(res), unsafe_allow_html=True)
-                    with popover_col2:
-                        st.number_input(label=res, key=f"site_{res}", **num_input_kwargs,
-                                        value=state.get("habitat", {}).get("site", {}).get(res, 0.00),
-                                        on_change=lambda r=res: state.setdefault("habitat", {}).setdefault(
-                                            "site", {}).update({r: state[f"site_{r}"]}))
+    if state.habitat["type"] == "base":
+        with st.popover(label="Base Site Resources", use_container_width=True):
+            num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
 
-        display_habitat_stats(state.habitat, all_modules)
+            for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
+                popover_col1, popover_col2 = st.columns([0.5, 5])
+                with popover_col1:
+                    st.write(get_base64_image(res), unsafe_allow_html=True)
+                with popover_col2:
+                    st.number_input(label=res, key=f"site_{res}", **num_input_kwargs,
+                                    value=state.get("habitat", {}).get("site", {}).get(res, 0.00),
+                                    on_change=lambda r=res: state.setdefault("habitat", {}).setdefault(
+                                        "site", {}).update({r: state[f"site_{r}"]}))
+
+    display_habitat_stats(state.habitat, all_modules)
