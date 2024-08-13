@@ -1,33 +1,33 @@
-def bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
+def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     bonuses = [
-        (0.40, t3_count, 0.14, 0.05, 0.033),  # T3: base 40%, 15% for 2nd, 5% for subsequent
-        (0.25, t2_count, 0.18, 0.08, 0.040),  # T2: base 25%, 20% for 2nd, 8% for subsequent
-        (0.10, t1_count, 0.20, 0.10, 0.050)   # T1: base 10%, 20% for 2nd, 10% for subsequent
+        (t3_count, 0.40, 0.14, 0.05, 0.033),  # T3: base 40%, 15% for 2nd, 5% for subsequent
+        (t2_count, 0.25, 0.18, 0.08, 0.040),  # T2: base 25%, 20% for 2nd, 8% for subsequent
+        (t1_count, 0.10, 0.20, 0.10, 0.050)   # T1: base 10%, 20% for 2nd, 10% for subsequent
     ]
 
     # Sort bonuses by base value in descending order
-    sorted_bonuses = sorted(bonuses, key=lambda x: x[0], reverse=True)
+    sorted_bonuses = sorted(bonuses, key=lambda x: x[1], reverse=True)
 
     total_bonus = 0
     applied_bonuses = 0  # Track how many bonuses have been applied
     highest_tier_coeffs = None  # Store the coefficients of the highest tier applied
 
-    for base_bonus, count, second_coeff, third_coeff, subsequent_coeff in sorted_bonuses:
-        if count > 0 and highest_tier_coeffs is None:
+    for count, base_bonus, second_coeff, third_coeff, subsequent_coeff in sorted_bonuses:
+        if count > 0 and highest_tier_coeffs is None:  # Determine the highest tier and use those coefficients
             highest_tier_coeffs = (second_coeff, third_coeff, subsequent_coeff)
 
         for i in range(count):
             if applied_bonuses == 0:
                 total_bonus += base_bonus  # Full bonus for the first module
             elif applied_bonuses == 1:
-                total_bonus += base_bonus * highest_tier_coeffs[0]  # Apply second bonus with the highest tier's second coefficient
+                total_bonus += base_bonus * highest_tier_coeffs[0]   # Apply 2nd bonus
             elif applied_bonuses == 2:
-                total_bonus += base_bonus * highest_tier_coeffs[1]  # Apply third bonus with the highest tier's second coefficient
+                total_bonus += base_bonus * highest_tier_coeffs[1]  # Apply 3rd bonus
             else:
-                total_bonus += base_bonus * highest_tier_coeffs[2]  # Apply subsequent bonuses with the highest tier's subsequent coefficient
+                total_bonus += base_bonus * highest_tier_coeffs[2]  # Apply subsequent bonuses
             applied_bonuses += 1
 
-    return total_bonus if total_bonus <= 0.50 else 0.50  # Ensure the total bonus doesn't exceed 50%
+    return total_bonus if total_bonus <= 0.50 else 0.50  # Cap total bonus at 50%
 
 
 tests = [
@@ -98,5 +98,5 @@ tests = [
 
 for t in tests:
     t3, t2, t1 = t[0][0], t[0][1], t[0][2]
-    result = round(bonus(t3, t2, t1) * 100)
+    result = round(construction_bonus(t3, t2, t1) * 100)
     print(f"Case: {t}, Expected: {t[-1]}, Result: {result}%, Diff: {t[-1] - result}%")
