@@ -26,6 +26,7 @@ def get_default_stats() -> c.ModuleData:
         "spaceCombatValue": 0,
         "techBonuses": {},
         "leoBonuses": {},
+        "weightedBuildMaterials": {"water": 0, "volatiles": 0, "metals": 0, "nobleMetals": 0, "fissiles": 0}
     }
 
 
@@ -101,7 +102,7 @@ def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_bo
                     if "Solar_Power_Variable_Output" in module.get("specialRules", []) else 1
                 hab_stats[k] += module[k] * modifier
 
-            case "supportMaterials_month":
+            case "supportMaterials_month" | "weightedBuildMaterials":
                 for sub_k, sub_v in module.get(k, {}).items():
                     hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) + sub_v
 
@@ -140,14 +141,20 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
     st.markdown("**Habitat Stats**")
     st.write(f"Crew {hab_stats['crew']}, Mass {hab_stats['baseMass_tons']} tons")
 
+    with st.popover(label="Habitat Build Costs", use_container_width=True):
+        for k, v in hab_stats["weightedBuildMaterials"].items():
+            icon = get_base64_image(k)
+            st.write(f"{icon} {format_number(v)}", unsafe_allow_html=True)
+
     col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
     cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
     col_stats_index = 0
 
     for k in hab_stats:
-        if (hab_stats[k] != 0 or k == "incomeMoney_month") and k not in ("crew", "baseMass_tons"):
-            match k:
+        if ((hab_stats[k] != 0 or k == "incomeMoney_month") and k
+                not in ("crew", "baseMass_tons", "weightedBuildMaterials")):
 
+            match k:
                 case "power":
                     icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                     with cols_stats[col_stats_index]:
