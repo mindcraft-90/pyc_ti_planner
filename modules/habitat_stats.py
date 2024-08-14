@@ -37,7 +37,7 @@ def format_number(value: float, precision: int = 1) -> float | int:
     return value.__round__(precision) if value % 1 else int(value)
 
 
-def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) -> str:
+def get_base64_image(stat: str, path="_resources/icons", height=15) -> str:
     """
     Create an icon image to display inline with text.
     """
@@ -45,10 +45,8 @@ def get_base64_image(stat: str, path="_resources/icons", width=20, height=20) ->
         with open(f"{path}/{stat}.png", "rb") as f:
             encoded_data = base64.b64encode(f.read()).decode()
     except FileNotFoundError:
-        # with open(f"data/misc/missing_icon.png", "rb") as f:
-        #     encoded_data = base64.b64encode(f.read()).decode()
         return stat
-    return f"<img src='data: image/png; base64, {encoded_data}' style='width: {width}px; height: {height}px; '>"
+    return f"<img src='data:image/png;base64,{encoded_data}' style='height:{height}px;width:auto;'>"
 
 
 def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
@@ -129,14 +127,13 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
-    build_costs = ', '.join(f"{get_base64_image(k)} {format_number(v * 30, precision=2)}"
+    build_costs = ', '.join(f"{get_base64_image(k, height=12)} {format_number(v * 30, precision=2)}"
                             for k, v in hab_stats["weightedBuildMaterials"].items())
 
-    st.write(f"Mass {hab_stats['baseMass_tons']} tons, Build costs: {build_costs}", unsafe_allow_html=True)
+    st.caption(f"Build costs: {build_costs}", unsafe_allow_html=True)
     st.markdown("**Habitat Stats**")
 
-    col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
-    cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
+    cols_stats = st.columns(c.ui_layouts["hab_stats"])
     col_stats_index = 0
 
     for k in hab_stats:

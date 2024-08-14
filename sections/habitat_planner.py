@@ -186,7 +186,6 @@ with col_stats:
     #                                 on_change=lambda r=res: state.setdefault("habitat", {}).setdefault(
     #                                     "site", {}).update({r: state[f"site_{r}"]}))
 
-
     if state.habitat["type"] == "base":
         @st.dialog("Base Site Resources")
         def base_site_resources():

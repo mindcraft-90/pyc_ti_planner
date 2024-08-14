@@ -5,7 +5,7 @@ ModuleData = dict[str, str | int | list[dict[str, float]] | dict | bool]
 ui_layouts = {
     "hab_main": [1.5, 3, 1.5],
     "hab_sub": [4, 1.5, 2],
-    "hab_stats": [1, 1, 1, 1, 1],
+    "hab_stats": [1, 1, 1, 1],
 }
 
 st_icons = {
