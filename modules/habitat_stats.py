@@ -171,14 +171,15 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     for sub_k in hab_stats[k]:
                         value = -1 *  hab_stats[k][sub_k]  # Flip the positive value to negative upkeep
 
-                        if sub_k in ("volatiles", "water"):  # Add farm module discounts for volatiles and water
-                            for module in module_list:
-                                if module in c.farm_supply.keys():
-                                    discount = c.farm_supply[module] * c.pop_upkeep[sub_k]
-                                    value = hab_stats[k].get(sub_k, 0) + discount
-                            value = min(value, 0.0)  # Farms would be a net gain if not forced to 0
+                        # Calculate farm module discounts
+                        farm_discount = sum(
+                            (module in c.farm_supply.keys()) * c.farm_supply.get(module, 0) * c.pop_upkeep.get(sub_k, 0)
+                            for module in module_list
+                        )
+                        # Add farming discounts as long as farm_discount <= -value, else add -value
+                        value += min(int(sub_k in ("volatiles", "water")) * farm_discount, -value)
 
-                        # Add mined resources #branchless!
+                        # Add site resources based on mining module tier
                         mining_bonuses = {3: 2, 2: 1.5, 1: 1, 0: 0}
                         tier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("tier", 0)
                         value += habitat_data.get("site", {}).get(sub_k, 0) * mining_bonuses[tier]
@@ -190,31 +191,31 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                             st.write(f"{get_base64_image(sub_k)} {value}", unsafe_allow_html=True)
                         col_stats_index = (col_stats_index + 1) % 4
 
-                case "supportMaterials_month":
-                    # Add farm module discounts for volatiles and water
-                    for sub_k in hab_stats[k]:
-                        if sub_k in ("volatiles", "water"):
-                            for module in module_list:
-                                if module in c.farm_supply.keys():
-                                    discount = c.farm_supply[module] * c.pop_upkeep[sub_k]
-                                    hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) - discount
-                            # Farms would be a net gain if not forced to 0
-                            hab_stats[k][sub_k] = 0 if hab_stats[k][sub_k] < 0 else hab_stats[k][sub_k]
-
-                        # Add mined resources #branchless!
-                        # Sub_k is a positive number that gets flipped to a negative later.
-                        # Therefor, we substract the site resource if a mining module exists.
-                        mining_bonuses = {3: 2, 2: 1.5, 1: 1, 0: 0}
-                        tier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("tier", 0)
-                        # sub_k is positive, so we substract site resources and flip it later
-                        hab_stats[k][sub_k] -= habitat_data.get("site", {}).get(sub_k, 0) * mining_bonuses[tier]
-
-                        value = format_number(-1 * hab_stats[k][sub_k])  # Flip the positive value to negative upkeep
-                        with cols_stats[col_stats_index]:
-                            if value == 0 or sub_k == "money":
-                                continue
-                            st.write(f"{get_base64_image(sub_k)} {value}", unsafe_allow_html=True)
-                        col_stats_index = (col_stats_index + 1) % 4
+                # case "supportMaterials_month":
+                #     # Add farm module discounts for volatiles and water
+                #     for sub_k in hab_stats[k]:
+                #         if sub_k in ("volatiles", "water"):
+                #             for module in module_list:
+                #                 if module in c.farm_supply.keys():
+                #                     discount = c.farm_supply[module] * c.pop_upkeep[sub_k]
+                #                     hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) - discount
+                #             # Farms would be a net gain if not forced to 0
+                #             hab_stats[k][sub_k] = 0 if hab_stats[k][sub_k] < 0 else hab_stats[k][sub_k]
+                #
+                #         # Add mined resources #branchless!
+                #         # Sub_k is a positive number that gets flipped to a negative later.
+                #         # Therefor, we substract the site resource if a mining module exists.
+                #         mining_bonuses = {3: 2, 2: 1.5, 1: 1, 0: 0}
+                #         tier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("tier", 0)
+                #         # sub_k is positive, so we substract site resources and flip it later
+                #         hab_stats[k][sub_k] -= habitat_data.get("site", {}).get(sub_k, 0) * mining_bonuses[tier]
+                #
+                #         value = format_number(-1 * hab_stats[k][sub_k])  # Flip the positive value to negative upkeep
+                #         with cols_stats[col_stats_index]:
+                #             if value == 0 or sub_k == "money":
+                #                 continue
+                #             st.write(f"{get_base64_image(sub_k)} {value}", unsafe_allow_html=True)
+                #         col_stats_index = (col_stats_index + 1) % 4
 
                 case "incomeAntimatter_month":
                     icon = get_base64_image(k)
