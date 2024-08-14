@@ -129,13 +129,11 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
-    st.markdown("**Habitat Stats**")
-    st.write(f"Crew {hab_stats['crew']}, Mass {hab_stats['baseMass_tons']} tons")
+    build_costs = ', '.join(f"{get_base64_image(k)} {format_number(v * 30, precision=2)}"
+                            for k, v in hab_stats["weightedBuildMaterials"].items())
 
-    with st.popover(label="Habitat Build Costs", use_container_width=True):
-        for k, v in hab_stats["weightedBuildMaterials"].items():
-            icon = get_base64_image(k)
-            st.write(f"{icon} {format_number(v * 30, precision=2)}", unsafe_allow_html=True)
+    st.write(f"Mass {hab_stats['baseMass_tons']} tons, Build costs: {build_costs}", unsafe_allow_html=True)
+    st.markdown("**Habitat Stats**")
 
     col_stats1, col_stats2, col_stats3, col_stats4, s = st.columns(c.ui_layouts["hab_stats"])
     cols_stats = [col_stats1, col_stats2, col_stats3, col_stats4]
@@ -143,7 +141,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
 
     for k in hab_stats:
         if ((hab_stats[k] != 0 or k == "incomeMoney_month") and k
-                not in ("crew", "baseMass_tons", "weightedBuildMaterials")):
+                not in ("baseMass_tons", "weightedBuildMaterials")):
 
             match k:
                 case "power":
