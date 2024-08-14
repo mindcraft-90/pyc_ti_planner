@@ -192,13 +192,11 @@ with col_stats:
             num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
             for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
                 site_res_cols = st.columns([0.5, 5])
-                with site_res_cols[0]:
-                    st.write(get_base64_image(res), unsafe_allow_html=True)
-                with site_res_cols[1]:
-                    st.number_input(label=res, key=f"site_{res}", **num_input_kwargs,
-                                    value=state.get("habitat", {}).get("site", {}).get(res, 0.00))
+                site_res_cols[0].write(get_base64_image(res), unsafe_allow_html=True)
+                site_res_cols[1].number_input(label=res, key=f"site_{res}", **num_input_kwargs,
+                                              value=state.get("habitat", {}).get("site", {}).get(res, 0.00))
 
-            if st.button("Submit"):
+            if st.button("Submit", use_container_width=True):
                 for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
                     state.setdefault("habitat", {}).setdefault("site", {})[res] = state[f"site_{res}"]
                 st.rerun()

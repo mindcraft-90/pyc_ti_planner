@@ -91,7 +91,7 @@ def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_bo
                     if "Solar_Power_Variable_Output" in module.get("specialRules", []) else 1
                 hab_stats[k] += module[k] * modifier
 
-            case "supportMaterials_month" | "weightedBuildMaterials":
+            case "supportMaterials_month":
                 for sub_k, sub_v in module.get(k, {}).items():
                     hab_stats[k][sub_k] = hab_stats[k].get(sub_k, 0) + sub_v
 
@@ -108,6 +108,12 @@ def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_bo
             case "CanFoundHabs":
                 if any(v.startswith("CanFoundTier") for v in module.get("specialRules", [])):
                     hab_stats["CanFoundHabs"] = True
+
+            case "weightedBuildMaterials":
+                if not module["coreModule"]:
+                    for sub_k, sub_v in module.get(k, {}).items():
+                        hab_stats[k][sub_k] = (hab_stats[k].get(sub_k, 0)
+                                               + (sub_v * c.build_multipliers.get(module["dataName"], 0)))
 
             case _:
                 hab_stats[k] += module.get(k, 0)
@@ -127,7 +133,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
-    build_costs = ', '.join(f"{get_base64_image(k, height=12)} {format_number(v * 30, precision=2)}"
+    build_costs = ', '.join(f"{get_base64_image(k, height=12)} {format_number(v, precision=2)}"
                             for k, v in hab_stats["weightedBuildMaterials"].items())
 
     st.caption(f"Build costs: {build_costs}", unsafe_allow_html=True)
@@ -241,8 +247,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     st.write("######")
                     st.markdown("""**Tech Bonuses**  
                        :gray[(Diminished past 50%)]""")
-                    col_tech1, col_tech2, col_tech3, col_tech4, t = st.columns(c.ui_layouts["hab_stats"])
-                    cols_tech = [col_tech1, col_tech2, col_tech3, col_tech4]
+                    cols_tech = st.columns(c.ui_layouts["hab_stats"])
                     col_tech_index = 0
 
                     for sub_k in hab_stats[k]:
