@@ -3,8 +3,7 @@ import streamlit as st
 from modules.utilities import send_email
 
 
-st.set_page_config(page_title="Terra Invicta Planner", page_icon="ℹ️",
-                   layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon="ℹ️", layout="centered")
 
 st.write("### ℹ️ Info and Support")
 st.write("(Or: 'Houston, We Have a Problem')")

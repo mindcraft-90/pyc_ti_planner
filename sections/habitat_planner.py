@@ -7,9 +7,7 @@ from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
 
 state = st.session_state
-
-st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️",
-                   layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️", layout="wide", initial_sidebar_state="collapsed")
 
 
 @st.cache_resource

@@ -131,7 +131,7 @@ pretty_stats = {
     "Combat Value": "spaceCombatValue",
 }
 
-# Module build cost mutipliers
+# Module build cost multipliers
 # Tested for Earth LEO, Mars (base and Deimos base)
 build_multipliers = {
     "PlatformCore": 1.5, "OrbitalCore": 7.5, "RingCore": 60,
