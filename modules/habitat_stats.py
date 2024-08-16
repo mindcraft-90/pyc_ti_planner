@@ -161,7 +161,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
 
                 case "supportMaterials_month":
                     for sub_k in hab_stats[k]:
-                        value = -1 *  hab_stats[k][sub_k]  # Flip the positive value to negative upkeep
+                        value = -1 * hab_stats[k][sub_k]  # Flip the positive value to negative upkeep
 
                         # Calculate farm module discounts
                         farm_discount = sum(
@@ -172,9 +172,8 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                         value += min(int(sub_k in ("volatiles", "water")) * farm_discount, -value)
 
                         # Add site resources based on mining module tier
-                        mining_bonuses = {3: 2, 2: 1.5, 1: 1, 0: 0}
-                        tier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("tier", 0)
-                        value += habitat_data.get("site", {}).get(sub_k, 0) * mining_bonuses[tier]
+                        mining_modifier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("miningModifier", 0)
+                        value += habitat_data.get("site", {}).get(sub_k, 0) * mining_modifier
 
                         value = format_number(value)
                         with cols_stats[col_stats_index]:
