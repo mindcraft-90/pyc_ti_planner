@@ -162,13 +162,14 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                 case "supportMaterials_month":
                     for sub_k in hab_stats[k]:
                         value = -hab_stats[k][sub_k]
+
                         # Calculate farm module discounts
                         if sub_k in ("volatiles", "water"):
                             discount = 0
                             for module in module_list:
                                 discount += c.farm_supply.get(module, 0)
                             discount *= c.pop_upkeep[sub_k]
-                            # Add farming discounts as long as farm_discount <= value, else set 0
+                            # Add farming discounts when upkeep(negative) + discount(positive) <= 0, else set 0
                             value = min(0, value + discount)
 
                         # Add site resources based on mining module tier
@@ -236,7 +237,6 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                     st.markdown("**LEO Bonuses**")
 
                     for sub_k in hab_stats[k]:
-                        # noinspection SpellCheckingInspection
                         if sub_k == "Miltech":
                             st.write(f"{sub_k.title()}: {hab_stats[k][sub_k]} :gray[(Max: 0.3)]")
                         elif sub_k in ("Public Campaign", "Alien Detection"):
