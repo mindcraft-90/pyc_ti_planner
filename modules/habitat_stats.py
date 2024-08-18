@@ -49,6 +49,11 @@ def get_base64_image(stat: str, path="_resources/icons", height=15) -> str:
     return f"<img src='data:image/png;base64,{encoded_data}' style='height:{height}px;width:auto;'>"
 
 
+def format_resource_string(data_dict, resources=("water", "volatiles", "metals", "nobleMetals", "fissiles")):
+    return ', '.join(f"{get_base64_image(res, height=12)} {format_number(data_dict.get(res, 0), precision=2)}"
+                     for res in resources)
+
+
 def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     bonuses = (
         (t3_count, 0.40, (1, 0.15, 0.06, 0.028)),
@@ -133,10 +138,13 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
         module_data = all_modules[module]
         update_habitat_stats(module_data, hab_stats, solar_body)
 
-    build_costs = ', '.join(f"{get_base64_image(k, height=12)} {format_number(v, precision=2)}"
-                            for k, v in hab_stats["weightedBuildMaterials"].items())
+    if habitat_data["type"] == "base":
+        site_res = format_resource_string(habitat_data.get("site", {}))
+        st.caption(f"Site resources: {site_res}", unsafe_allow_html=True)
 
+    build_costs = format_resource_string(hab_stats["weightedBuildMaterials"])
     st.caption(f"Build costs: {build_costs}", unsafe_allow_html=True)
+
     st.markdown("**Habitat Stats**")
 
     cols_stats = st.columns(c.ui_layouts["hab_stats"])
