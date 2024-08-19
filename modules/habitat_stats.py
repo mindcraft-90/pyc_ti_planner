@@ -77,7 +77,7 @@ def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     return min(total_bonus, 0.50)  # Cap total bonus at 50%
 
 
-def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
+def base_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
     """
@@ -126,6 +126,28 @@ def update_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_bo
     return hab_stats
 
 
+def update_habitat_stats(hab_stats, hab_modules, all_modules):
+    hab_state = st.session_state.habitat
+    for material in hab_stats["supportMaterials_month"]:
+        value = -hab_stats["supportMaterials_month"][material]
+
+        # Calculate farm module discounts
+        if material in ("volatiles", "water"):
+            discount = 0
+            for module in hab_modules:
+                discount += c.farm_supply.get(module, 0)
+            discount *= c.pop_upkeep[material]
+            # Add farming discounts when upkeep(negative) + discount(positive) <= 0, else set 0
+            value = min(0, value + discount)
+
+        # Add site resources based on mining module tier
+        mining_modifier = all_modules.get(hab_state["cells"]["0_3"][-1], {}).get("miningModifier", 0)
+        value += hab_state.get("site", {}).get(material, 0) * mining_modifier
+        hab_stats["supportMaterials_month"][material] = value
+
+    return hab_stats
+
+
 def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.ModuleData]) -> None:
     """
     Display the habitat stats in the Streamlit app.
@@ -136,7 +158,8 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
     solar_body = habitat_data["body"]
     for module in module_list:
         module_data = all_modules[module]
-        update_habitat_stats(module_data, hab_stats, solar_body)
+        base_habitat_stats(module_data, hab_stats, solar_body)
+    update_habitat_stats(hab_stats, module_list, all_modules)
 
     if habitat_data["type"] == "base":
         site_res = format_resource_string(habitat_data.get("site", {}))
@@ -156,42 +179,29 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
 
             match k:
                 case "power":
-                    icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                     with cols_stats[col_stats_index]:
+                        icon = get_base64_image(f"{k}_negative" if hab_stats[k] <= 0 else k)
                         st.write(f"{icon} {format_number(hab_stats[k])}", unsafe_allow_html=True)
                     col_stats_index = (col_stats_index + 1) % 4
 
                 case "incomeProjects":
-                    icon = get_base64_image(k)
                     with cols_stats[col_stats_index]:
+                        icon = get_base64_image(k)
                         st.write(f"{icon} {hab_stats[k] * 5}%", unsafe_allow_html=True)
                     col_stats_index = (col_stats_index + 1) % 4
 
                 case "supportMaterials_month":
                     for sub_k in hab_stats[k]:
-                        value = -hab_stats[k][sub_k]
-
-                        # Calculate farm module discounts
-                        if sub_k in ("volatiles", "water"):
-                            discount = 0
-                            for module in module_list:
-                                discount += c.farm_supply.get(module, 0)
-                            discount *= c.pop_upkeep[sub_k]
-                            # Add farming discounts when upkeep(negative) + discount(positive) <= 0, else set 0
-                            value = min(0, value + discount)
-
-                        # Add site resources based on mining module tier
-                        mining_modifier = all_modules.get(habitat_data["cells"]["0_3"][-1], {}).get("miningModifier", 0)
-                        value += habitat_data.get("site", {}).get(sub_k, 0) * mining_modifier
+                        value = hab_stats[k][sub_k]
+                        if value == 0 or sub_k == "money":
+                            continue
 
                         with cols_stats[col_stats_index]:
-                            if value == 0 or sub_k == "money":
-                                continue
-                            st.write(f"{get_base64_image(sub_k)} {format_number(value)}", unsafe_allow_html=True)
+                            icon = get_base64_image(sub_k)
+                            st.write(f"{icon} {format_number(value)}", unsafe_allow_html=True)
                         col_stats_index = (col_stats_index + 1) % 4
 
                 case "incomeAntimatter_month":
-                    icon = get_base64_image(k)
                     prefixes = ['', 'µ', 'n', 'p', 'f', 'a']
                     prefix_values = [1e0, 1e-6, 1e-9, 1e-12, 1e-15, 1e-18]
 
@@ -208,6 +218,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                         value = hab_stats[k]
 
                     with cols_stats[col_stats_index]:
+                        icon = get_base64_image(k)
                         st.write(f"{icon} {value}", unsafe_allow_html=True)
                     col_stats_index = (col_stats_index + 1) % 4
 
@@ -255,7 +266,7 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.M
                 case _:
                     with cols_stats[col_stats_index]:
                         icon = get_base64_image(k)
-                        value = hab_stats[k] - hab_stats["supportMaterials_month"]["money"] \
+                        value = hab_stats[k] + hab_stats["supportMaterials_month"]["money"] \
                             if k == "incomeMoney_month" else hab_stats[k]
 
                         display = f"{icon} {format_number(value)}" if k not in (
