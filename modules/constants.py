@@ -1,5 +1,7 @@
 # Module data type
-ModuleData = dict[str, str | int | list[dict[str, float]] | dict | bool]
+ModuleData = dict[str: str | int | list[dict[str, float]] | dict | bool]
+HabStats = dict[str: str | int | float | bool | dict[str: int | float]]
+StateData = dict["cells": dict[str: str | bool]]
 
 # App UI resources
 ui_layouts = {

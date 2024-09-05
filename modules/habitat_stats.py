@@ -4,7 +4,7 @@ import streamlit as st
 from modules import constants as c
 
 
-def get_default_stats() -> c.ModuleData:
+def get_default_stats() -> c.HabStats:
     """
     Retrieve a blank set of desired habitat stats.
     """
@@ -77,7 +77,7 @@ def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     return min(total_bonus, 0.50)  # Cap total bonus at 50%
 
 
-def base_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body: str) -> c.ModuleData:
+def base_habitat_stats(module: c.ModuleData, hab_stats: c.HabStats, solar_body: str) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
     """
@@ -126,8 +126,13 @@ def base_habitat_stats(module: c.ModuleData, hab_stats: c.ModuleData, solar_body
     return hab_stats
 
 
-def update_habitat_stats(hab_stats, hab_modules, all_modules):
+def update_habitat_stats(hab_stats: c.HabStats, hab_modules: list, all_modules: c.ModuleData):
     hab_state = st.session_state.habitat
+
+    # Add Administration Module bonuses
+    admin_bonus = {"AdministrationComplex": 1.1, "AdministrationTower": 1.05}
+    admin_modifier = max((admin_bonus[m] for m in hab_modules if m in admin_bonus), default=1)
+
     for material in hab_stats["supportMaterials_month"]:
         value = -hab_stats["supportMaterials_month"][material]
 
@@ -142,13 +147,13 @@ def update_habitat_stats(hab_stats, hab_modules, all_modules):
 
         # Add site resources based on mining module tier
         mining_modifier = all_modules.get(hab_state["cells"]["0_3"][-1], {}).get("miningModifier", 0)
-        value += hab_state.get("site", {}).get(material, 0) * mining_modifier
+        value += hab_state.get("site", {}).get(material, 0) * mining_modifier * admin_modifier
         hab_stats["supportMaterials_month"][material] = value
 
     return hab_stats
 
 
-def display_habitat_stats(habitat_data: c.ModuleData, all_modules: dict[str, c.ModuleData]) -> None:
+def display_habitat_stats(habitat_data: c.ModuleData, all_modules: c.ModuleData) -> None:
     """
     Display the habitat stats in the Streamlit app.
     """
