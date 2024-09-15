@@ -132,6 +132,9 @@ def update_habitat_stats(hab_stats: c.HabStats, hab_modules: list, all_modules: 
     # Add Administration Module bonuses
     admin_bonus = {"AdministrationComplex": 1.1, "AdministrationTower": 1.05}
     admin_modifier = max((admin_bonus[m] for m in hab_modules if m in admin_bonus), default=1)
+    admin_incomes = ["incomeMoney_month", "incomeInfluence_month", "incomeOps_month", "incomeResearch_month"]
+    for i in admin_incomes:
+        hab_stats[i] = hab_stats[i] * admin_modifier
 
     for material in hab_stats["supportMaterials_month"]:
         value = -hab_stats["supportMaterials_month"][material]
