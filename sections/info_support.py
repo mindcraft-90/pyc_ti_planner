@@ -40,6 +40,7 @@ st.write("#### 🐞 Features in Disguise")
 st.write(
     """
     - Mining module power isn't adjusted for solar bodies
+    - Only a few modules have construction costs.
     - Habitat airlocks occasionally jam. Have you tried turning it off and on again?
     """
 )
@@ -51,7 +52,10 @@ with st.expander(label="Version 0.1.2 - Refined Stats"):
     st.write(
         """
         - Module sprites resize based on tier difference.
-        - Added refined stat indicators for antimatter, construction bonus and projects
+        - Refined stat indicators for antimatter, construction bonus and projects.
+        - Added some habitat construction costs - needs more work.
+        - Added Mining module bonus based on module tier.
+        - Added Adminsitration module bonuses.
         """
     )
 with st.expander(label="Version 0.1.1 - Hotfixes"):
