@@ -18,6 +18,7 @@ def get_default_stats() -> c.HabStats:
         "incomeResearch_month": 0,
         "incomeProjects": 0,
         "missionControl": 0,
+        "controlPointCapacity": 0,
         "supportMaterials_month": {"water": 0, "volatiles": 0, "metals": 0, "nobleMetals": 0, "fissiles": 0},
         "incomeAntimatter_month": 0,
         "allowsResupply": False,
@@ -95,6 +96,10 @@ def base_habitat_stats(module: c.ModuleData, hab_stats: c.HabStats, solar_body: 
                 modifier = c.solar_modifiers[solar_body] \
                     if "Solar_Power_Variable_Output" in module.get("specialRules", []) else 1
                 hab_stats[k] += module[k] * modifier
+
+            case "controlPointCapacity":
+                if solar_body == "Earth (LEO)":
+                    hab_stats[k] += module[k]
 
             case "supportMaterials_month":
                 for sub_k, sub_v in module.get(k, {}).items():

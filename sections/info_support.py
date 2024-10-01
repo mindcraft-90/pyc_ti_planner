@@ -55,7 +55,7 @@ with st.expander(label="Version 0.1.2 - Refined Stats"):
         - Refined stat indicators for antimatter, construction bonus and projects.
         - Added some habitat construction costs - needs more work.
         - Added Mining module bonus based on module tier.
-        - Added Adminsitration module bonuses.
+        - Added Administration module bonuses.
         """
     )
 with st.expander(label="Version 0.1.1 - Hotfixes"):
