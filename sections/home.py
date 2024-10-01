@@ -10,11 +10,9 @@ from modules.habitat_stats import get_base64_image
 icon_path = "_resources/icons/title.png" \
     if os.path.exists("_resources/icons/title.png") else "data/misc/missing_icon.png"
 icon = get_base64_image(stat="title" if "icons" in icon_path else "missing_icon",
-                        path="_resources/icons" if "icons" in icon_path else "data/misc",
-                        height=40, width=40)
+                        path="_resources/icons" if "icons" in icon_path else "data/misc", height=40)
 
-st.set_page_config(page_title="Terra Invicta Planner", page_icon=Image.open(icon_path),
-                   layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon=Image.open(icon_path), layout="centered")
 
 st.write(f"### {icon} Terra Invicta Planner", unsafe_allow_html=True)
 st.write("######")

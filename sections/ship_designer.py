@@ -1,6 +1,6 @@
 import streamlit as st
 
-st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛸", layout="wide")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛸", initial_sidebar_state="collapsed")
 
 st.write("## Ship Designer")
 

@@ -3,8 +3,7 @@ import streamlit as st
 from modules.utilities import send_email
 
 
-st.set_page_config(page_title="Terra Invicta Planner", page_icon="ℹ️",
-                   layout="centered", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon="ℹ️", layout="centered")
 
 st.write("### ℹ️ Info and Support")
 st.write("(Or: 'Houston, We Have a Problem')")
@@ -41,6 +40,7 @@ st.write("#### 🐞 Features in Disguise")
 st.write(
     """
     - Mining module power isn't adjusted for solar bodies
+    - Only a few modules have construction costs.
     - Habitat airlocks occasionally jam. Have you tried turning it off and on again?
     """
 )
@@ -48,6 +48,16 @@ st.write(
 
 st.write("######")
 st.write("#### 📜 Release Notes")
+with st.expander(label="Version 0.1.2 - Refined Stats"):
+    st.write(
+        """
+        - Module sprites resize based on tier difference.
+        - Refined stat indicators for antimatter, construction bonus and projects.
+        - Added some habitat construction costs - needs more work.
+        - Added Mining module bonus based on module tier.
+        - Added Administration module bonuses.
+        """
+    )
 with st.expander(label="Version 0.1.1 - Hotfixes"):
     st.write(
         """

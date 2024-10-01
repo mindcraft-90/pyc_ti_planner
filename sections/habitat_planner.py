@@ -7,9 +7,7 @@ from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
 
 state = st.session_state
-
-st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️",
-                   layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️", layout="wide", initial_sidebar_state="collapsed")
 
 
 @st.cache_resource
@@ -84,13 +82,13 @@ if state.clicked_cell and state.module_choice:
     state.clicked_cell = None
 
 
-col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"], vertical_alignment="top")
+col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"])
 with col_habitat:
     sub_layout = ui_layouts["hab_sub"]
     col_core_choice, col_habitat_type, col_solar_body \
-        = st.columns(sub_layout, vertical_alignment="center")
+        = st.columns(sub_layout)
     col_module_filters, col_module_select \
-        = st.columns([sub_layout[0], sub_layout[1] + sub_layout[2]], vertical_alignment="center")
+        = st.columns([sub_layout[0], sub_layout[1] + sub_layout[2]])
 
     habitat_type: str = col_habitat_type.radio(
         label="Habitat Type",
@@ -165,24 +163,29 @@ with col_habitat:
                 placeholder=f"Editing: {module_tooltip(cell_key, state, all_modules)}",
                 key="module_choice")
 
-    with col_stats:
-        st.text_input(label="Habitat name:", label_visibility="visible", placeholder="Habitat name...", max_chars=40,
-                      key="hab_name",
-                      value=state.get("habitat", {}).get("name", ""),
-                      on_change=lambda: state.setdefault("habitat", {}).update({"name": state.hab_name}))
 
-        if state.habitat["type"] == "base":
-            with st.popover(label="Base Site Resources", use_container_width=True):
-                num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
+with col_stats:
+    st.text_input(label="Habitat name:", label_visibility="visible", placeholder="Habitat name...", max_chars=40,
+                  key="hab_name",
+                  value=state.get("habitat", {}).get("name", ""),
+                  on_change=lambda: state.setdefault("habitat", {}).update({"name": state.hab_name}))
 
+    if state.habitat["type"] == "base":
+        @st.dialog("Base Site Resources")
+        def base_site_resources():
+            num_input_kwargs = {"label_visibility": "collapsed", "min_value": 0.00, "step": 1.00}
+            for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
+                site_res_cols = st.columns([0.5, 5])
+                site_res_cols[0].write(get_base64_image(res), unsafe_allow_html=True)
+                site_res_cols[1].number_input(label=res, key=f"site_{res}", **num_input_kwargs,
+                                              value=state.get("habitat", {}).get("site", {}).get(res, 0.00))
+
+            if st.button("Submit", use_container_width=True):
                 for res in ["water", "volatiles", "metals", "nobleMetals", "fissiles"]:
-                    popover_col1, popover_col2 = st.columns([0.5, 5])
-                    with popover_col1:
-                        st.write(get_base64_image(res), unsafe_allow_html=True)
-                    with popover_col2:
-                        st.number_input(label=res, key=f"site_{res}", **num_input_kwargs,
-                                        value=state.get("habitat", {}).get("site", {}).get(res, 0.00),
-                                        on_change=lambda r=res: state.setdefault("habitat", {}).setdefault(
-                                            "site", {}).update({r: state[f"site_{r}"]}))
+                    state.setdefault("habitat", {}).setdefault("site", {})[res] = state[f"site_{res}"]
+                st.rerun()
 
-        display_habitat_stats(state.habitat, all_modules)
+        if st.button("Add site resources"):
+            base_site_resources()
+
+    display_habitat_stats(state.habitat, all_modules)
