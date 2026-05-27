@@ -125,14 +125,29 @@ with col_habitat:
     if "module_choice" not in state:
         state.module_choice = None
 
-    # 🤷 shrug off habitat tier and type changes...
-    if "first_run" not in state \
-            or active_core["tier"] != state.habitat["tier"] \
-            or habitat_type.lower() != state.habitat["type"]:
+    # Reset habitat state when core, tier, or type changes
+    if "pending_core" not in state:
+        state.pending_core = None
+
+    needs_reset = (
+            "first_run" not in state
+            or core_choice != state.pending_core
+            or active_core["tier"] != state.get("habitat", {}).get("tier")
+            or habitat_type.lower() != state.get("habitat", {}).get("type")
+    )
+    state.pending_core = core_choice
+
+    if needs_reset:
         state.habitat = {"cells": {}}
         state.clicked_cell = None
         state.module_choice = None
         state.first_run = False
+        state.habitat["core"] = active_core["dataName"]
+        state.habitat["tier"] = active_core["tier"]
+        state.habitat["type"] = habitat_type.lower()
+        state.habitat["body"] = solar_body
+        st.rerun()
+
     state.habitat["core"] = active_core["dataName"]
     state.habitat["tier"] = active_core["tier"]
     state.habitat["type"] = habitat_type.lower()
