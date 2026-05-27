@@ -42,7 +42,7 @@ def filter_modules(core: ModuleData, tier_filters: list[str], mining_cell=False)
             }
 
     if income_filters:
-        mods = {k: v for k, v in mods.items() if any(v[income] > 0 for income in income_filters)}
+        mods = {k: v for k, v in mods.items() if any(v.get(income, 0) > 0 for income in income_filters)}
     return {k: v for k, v in mods.items() if v.get("mine", False)} if mining_cell else mods
 
 
