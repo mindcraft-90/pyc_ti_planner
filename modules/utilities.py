@@ -53,6 +53,11 @@ def send_email(message):
         server.quit()
 
 
+def format_solar_modifier(value: float) -> str:
+    s = f"{value:.3f}".rstrip('0')
+    return s if s.endswith('.') is False else s + '0'
+
+
 def habitat_to_url(habitat: dict) -> str:
     """Compress and encode habitat state for URL."""
     json_str = json.dumps(habitat, separators=(',', ':'))

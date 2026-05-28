@@ -78,7 +78,7 @@ def construction_bonus(t3_count: int, t2_count: int, t1_count: int) -> float:
     return min(total_bonus, 0.50)  # Cap total bonus at 50%
 
 
-def base_habitat_stats(module: c.ModuleData, hab_stats: c.HabStats, solar_body: str) -> c.ModuleData:
+def base_habitat_stats(module: c.ModuleData, hab_stats: c.HabStats, solar_body: str, solar_modifier: float) -> c.ModuleData:
     """
     Update the habitat_stats dictionary based on the given module and solar body.
     """
@@ -93,7 +93,7 @@ def base_habitat_stats(module: c.ModuleData, hab_stats: c.HabStats, solar_body: 
                     hab_stats[sub_d][sub_k] = hab_stats[sub_d].get(sub_k, 0) + res_upkeep
 
             case "power":
-                modifier = c.solar_modifiers[solar_body] \
+                modifier = solar_modifier \
                     if "Solar_Power_Variable_Output" in module.get("specialRules", []) else 1
                 hab_stats[k] += module[k] * modifier
 
@@ -169,9 +169,11 @@ def display_habitat_stats(habitat_data: c.ModuleData, all_modules: c.ModuleData)
 
     hab_stats = get_default_stats()
     solar_body = habitat_data["body"]
+    solar_modifier = habitat_data.get("solar_modifier_override") or c.solar_modifiers[solar_body]
+
     for module in module_list:
         module_data = all_modules[module]
-        base_habitat_stats(module_data, hab_stats, solar_body)
+        base_habitat_stats(module_data, hab_stats, solar_body, solar_modifier)
     update_habitat_stats(hab_stats, module_list, all_modules)
 
     if habitat_data["type"] == "base":

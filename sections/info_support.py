@@ -10,17 +10,17 @@ st.write("(Or: 'Houston, We Have a Problem')")
 
 st.write("######")
 st.write("#### 📋 File a Report")
-with st.expander(label="Got a burning question? Aliens stole your homework? Use this form!", icon="✉️"):
+with st.expander(label="Got a bug or suggestion? Send it here.", icon="✉️"):
     with st.form(key="email_form", clear_on_submit=True):
-        user_email = st.text_input("Your Earth email address (or nearest exoplanet equivalent)")
+        user_email = st.text_input("Your email address")
         user = user_email.split("@")[0]
-        topic = st.selectbox(label="What's the cosmic issue?",
+        topic = st.selectbox(label="Topic",
                              options=["Brilliant Suggestion",
                                       "Pesky Bug",
                                       "Existential Question",
-                                      "Other Earthly Concerns"])
+                                      "Other"])
 
-        raw_message = st.text_area("Your message (please no alien languages, our translator is on coffee break)")
+        raw_message = st.text_area("Message")
         message = f"""Subject:[{topic}] Terra Invicta Planner - Transmission from {user}
 
         Cosmic Topic: {topic}

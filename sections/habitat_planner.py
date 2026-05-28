@@ -1,3 +1,4 @@
+import time
 import json
 import streamlit as st
 
@@ -5,7 +6,7 @@ from modules.clickable_image import clickable_image
 from modules.constants import ModuleData, habitat_layouts, solar_modifiers, ui_layouts, pretty_stats
 from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
-from modules.utilities import url_to_habitat, habitat_to_url
+from modules.utilities import url_to_habitat, habitat_to_url, format_solar_modifier
 
 state = st.session_state
 st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️", layout="wide", initial_sidebar_state="collapsed")
@@ -15,8 +16,15 @@ if "h" in st.query_params and "first_run" not in state:
         state.habitat = url_to_habitat(st.query_params["h"])
         state.first_run = False
         state.pending_core = state.habitat.get("core")  # prevent reset trigger
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Could not load habitat from URL. Error: {e}")
+        placeholder = st.empty()
+        for i in range(3, 0, -1):
+            placeholder.warning(f"⚠️ Invalid habitat URL. Redirecting in {i}s...")
+            time.sleep(1)
+        placeholder.empty()
+        st.query_params.clear()
+        st.rerun()
 
 
 @st.cache_resource
@@ -71,7 +79,7 @@ def generate_habitat_layout(core: ModuleData) -> None:
         else:
             cols = st.columns(len(row))
 
-        for col_idx, col in ((i, c) for i, c in enumerate(cols) if row[i] != 0):
+        for col_idx, col in ((idx, c) for idx, c in enumerate(cols) if row[idx] != 0):
             with col:
                 label = f"{row_idx}_{col_idx}"
                 if label not in state.habitat["cells"]:
@@ -90,26 +98,54 @@ if state.clicked_cell and state.module_choice:
     state.module_choice = None
     state.clicked_cell = None
 
+if state.get("solar_modifier_invalid"):
+    state.solar_modifier_input = ""
+    state.solar_modifier_invalid = False
+
 
 col_stats, col_habitat, empty = st.columns(ui_layouts["hab_main"])
-with col_habitat:
+with (col_habitat):
     sub_layout = ui_layouts["hab_sub"]
-    col_core_choice, col_habitat_type, col_solar_body \
+    col_core_choice, col_habitat_type, col_solar_body, col_solar_modifier \
         = st.columns(sub_layout)
     col_module_filters, col_module_select \
-        = st.columns([sub_layout[0], sub_layout[1] + sub_layout[2]])
+        = st.columns([sub_layout[0] + sub_layout[1], sub_layout[2] + sub_layout[3]])
 
     habitat_type: str = col_habitat_type.radio(
         label="Habitat Type",
         options=("station", "base"),
-        format_func=str.title,
+        format_func=lambda x: x.title(),
         index=("station", "base").index(state.get("habitat", {}).get("type", "station")))
 
     solar_body: str = col_solar_body.selectbox(
         label="System Body",
         options=list(solar_modifiers.keys()),
-        index=list(solar_modifiers.keys()).index(
-            state.get("habitat", {}).get("body", list(solar_modifiers.keys())[0])))
+        key="solar_body_select",
+        on_change=lambda: state.habitat.update({
+            "solar_modifier_override": None,
+            "body": state.solar_body_select
+        }) or state.update({"solar_modifier_input": ""}),
+        index=list(solar_modifiers.keys()).index(state.get("habitat", {}).get("body", list(solar_modifiers.keys())[0])))
+
+    #### Placeholder logic for user input solar output modifier
+    if "solar_modifier_input" not in state:
+        state.solar_modifier_input = str(
+            state.get("habitat", {}).get("solar_modifier_override") if state.get("habitat", {}).get(
+                "solar_modifier_override") is not None else "")
+
+    solar_modifier_input = col_solar_modifier.text_input(
+        label="Solar Modifier",
+        key="solar_modifier_input",
+        placeholder=format_solar_modifier(float(solar_modifiers[solar_body])))
+
+    try:
+        solar_modifier = float(solar_modifier_input)
+    except ValueError:
+        solar_modifier = float(solar_modifiers[solar_body])
+        if solar_modifier_input and not solar_modifier_input.endswith('.') and not solar_modifier_input == '-':
+            state.solar_modifier_invalid = True
+            st.rerun()
+    ####################################################################################################################
 
     all_modules: dict[str, ModuleData] = get_raw_module_data()
     cores: dict[str, ModuleData] = {k: v for k, v in all_modules.items()
@@ -153,14 +189,15 @@ with col_habitat:
         state.first_run = False
         state.habitat["core"] = active_core["dataName"]
         state.habitat["tier"] = active_core["tier"]
-        state.habitat["type"] = habitat_type.lower()
-        state.habitat["body"] = solar_body
+        state.habitat["type"] = habitat_type.lower() # type: ignore
+        state.habitat["body"] = solar_body # type: ignore
         st.rerun()
 
     state.habitat["core"] = active_core["dataName"]
     state.habitat["tier"] = active_core["tier"]
     state.habitat["type"] = habitat_type.lower()
     state.habitat["body"] = solar_body
+    state.habitat["solar_modifier_override"] = solar_modifier if solar_modifier != float(solar_modifiers[solar_body]) else None
 
     generate_habitat_layout(active_core)
     st.query_params["h"] = habitat_to_url(state.habitat)

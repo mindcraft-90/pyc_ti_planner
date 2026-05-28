@@ -1,12 +1,12 @@
 # Module data type
 ModuleData = dict[str, str | int | list[dict[str, float]] | dict | bool]
 HabStats = dict[str, str | int | float | bool | dict[str, int | float]]
-StateData = dict[str, dict[str, str | bool]]
+StateData = dict[str, dict[str, str | bool | int | float | dict]]
 
 # App UI resources
 ui_layouts = {
     "hab_main": [1.5, 3, 1.5],
-    "hab_sub": [4, 1.5, 2],
+    "hab_sub": [3.25, 1.25, 1.75, 1.25],
     "hab_stats": [1, 1, 1, 1],
 }
 
@@ -43,7 +43,7 @@ farm_supply = {
 }
 
 # Solar power output modifiers based on solar bodies
-solar_modifiers = {
+solar_modifiers: dict[str, int | float] = {
     "Earth (LEO)": 1,
     "Mercury": 6.672,
     "Venus": 1.9,
