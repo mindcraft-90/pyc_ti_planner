@@ -118,7 +118,7 @@ def module_tooltip(label: str, state, all_modules) -> str:
     power_cost = f"Power: {module_stat['power']}, " if module_stat["power"] < 0 else ""
 
     crew_costs = (module_stat["crew"] * 7 / 240)
-    total_costs = module_stat["supportMaterials_month"].copy()
+    total_costs = module_stat.get("supportMaterials_month", {}).copy()
     total_costs["water"] = total_costs.get("water", 0) + crew_costs
     total_costs["volatiles"] = total_costs.get("volatiles", 0) + crew_costs
 

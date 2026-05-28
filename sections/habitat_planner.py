@@ -5,9 +5,18 @@ from modules.clickable_image import clickable_image
 from modules.constants import ModuleData, habitat_layouts, solar_modifiers, ui_layouts, pretty_stats
 from modules.habitat_stats import display_habitat_stats, get_base64_image
 from modules.habitat_module import module_image, module_tooltip
+from modules.utilities import url_to_habitat, habitat_to_url
 
 state = st.session_state
 st.set_page_config(page_title="Terra Invicta Planner", page_icon="🛰️", layout="wide", initial_sidebar_state="collapsed")
+
+if "h" in st.query_params and "first_run" not in state:
+    try:
+        state.habitat = url_to_habitat(st.query_params["h"])
+        state.first_run = False
+        state.pending_core = state.habitat.get("core")  # prevent reset trigger
+    except Exception:
+        pass
 
 
 @st.cache_resource
@@ -154,6 +163,7 @@ with col_habitat:
     state.habitat["body"] = solar_body
 
     generate_habitat_layout(active_core)
+    st.query_params["h"] = habitat_to_url(state.habitat)
 
     with col_module_filters:
         available_tiers: list[str] = [f"Tier {i}" for i in range(1, active_core["tier"] + 1)]
