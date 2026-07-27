@@ -48,6 +48,16 @@ st.write(
 
 st.write("######")
 st.write("#### 📜 Release Notes")
+with st.expander(label="Version 0.1.3 - Shareable Habitats"):
+    st.write(
+        """
+        - Added shareable habitat links, so you can copy/paste it to friends, enemies, or your future self.
+        - Added a custom Solar Modifier input. 
+        You punch in the in-game number yourself, because I have genuinely no idea how to extract the real values.
+        - Fixed habitat layout not updating when changing core tier.
+        - Simplified the Home and Info & Support pages.
+        """
+    )
 with st.expander(label="Version 0.1.2 - Refined Stats"):
     st.write(
         """
